@@ -1,6 +1,10 @@
-var ParseXbrl = require('../index.js');
+//const { try } = require('bluebird');
+const { executeSpecsInFolder } = require('jasmine-node');
+const xmlParser = require('xml2json');
+const ParseXbrl = require('../index.js');
+const fs = require('fs');
 
-var wlRossHolingCorp10kParsed = {
+const wlRossHolingCorp10kParsed = {
   NetCashFlowsContinuing: -791415,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: -332612,
@@ -69,7 +73,7 @@ var wlRossHolingCorp10kParsed = {
   FiscalYear: '--12-31'
 };
 
-var amazon10kParsed = {
+const amazon10kParsed = {
   NetCashFlowsContinuing: 1707000000,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: 596000000,
@@ -140,7 +144,7 @@ var amazon10kParsed = {
   FiscalYear: '--12-31'
 };
 
-var cannabicsPharmaceuticals10kParsed = {
+const cannabicsPharmaceuticals10kParsed = {
   NetCashFlowsContinuing: 0,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: -1279138,
@@ -209,7 +213,7 @@ var cannabicsPharmaceuticals10kParsed = {
   FiscalYear: '--08-31'
 };
 
-var costco10kParsed = {
+const costco10kParsed = {
   NetCashFlowsContinuing: 7001,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: -23719,
@@ -278,7 +282,7 @@ var costco10kParsed = {
   FiscalYear: '--11-30'
 };
 
-var transatlanticCapital10kParsed = {
+const transatlanticCapital10kParsed = {
   NetCashFlowsContinuing: 0,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: -312535,
@@ -346,7 +350,7 @@ var transatlanticCapital10kParsed = {
   FiscalYear: '--12-31'
 };
 
-var sweetsAndTreats10qParsed = {
+const sweetsAndTreats10qParsed = {
   NetCashFlowsContinuing: -47,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: -2065,
@@ -417,7 +421,7 @@ var sweetsAndTreats10qParsed = {
   FiscalYear: '--07-31'
 };
 
-var rubyTuesday10qParsed = {
+const rubyTuesday10qParsed = {
   NetCashFlowsContinuing: -30080000,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: -19993000,
@@ -488,7 +492,7 @@ var rubyTuesday10qParsed = {
   FiscalYear: '--05-31'
 };
 
-var google10kParsed = {
+const google10kParsed = {
   NetCashFlowsContinuing: -1364000000,
   NetCashFlowsFinancingDiscontinued: 0,
   NetIncomeAvailableToCommonStockholdersBasic: 15826000000,
@@ -560,10 +564,8 @@ var google10kParsed = {
 
 describe('parse-xbrl', function (done) {
   it('should parse the xbrl for Amazon 10k', function (done) {
-    var amazon10kOutput = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/amazon_10k.xml'
-    );
-    amazon10kOutput.then(results => {
+    var amazon10kOutput = ParseXbrl.parse('./test/sampleXbrlDocuments/amazon_10k.xml');
+    amazon10kOutput.then((results) => {
       for (var key in results) {
         if (amazon10kParsed[key]) {
           expect(results[key]).toBe(amazon10kParsed[key]);
@@ -588,9 +590,7 @@ describe('parse-xbrl', function (done) {
   });
 
   it('should parse the xbrl for Costco Inc. 10k', function (done) {
-    var costco10kOutput = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/costco_inc_10k.xml'
-    );
+    var costco10kOutput = ParseXbrl.parse('./test/sampleXbrlDocuments/costco_inc_10k.xml');
     costco10kOutput.then(function (results) {
       for (var key in results) {
         if (costco10kParsed[key]) {
@@ -644,9 +644,7 @@ describe('parse-xbrl', function (done) {
   });
 
   it('should parse the xbrl for Ruby Tuesday 10q', function (done) {
-    var rubyTuesday10qOutput = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/ruby_tuesday_10q.xml'
-    );
+    var rubyTuesday10qOutput = ParseXbrl.parse('./test/sampleXbrlDocuments/ruby_tuesday_10q.xml');
     rubyTuesday10qOutput.then(function (results) {
       for (var key in results) {
         if (rubyTuesday10qParsed[key]) {
@@ -658,10 +656,9 @@ describe('parse-xbrl', function (done) {
   });
 
   it('should parse the xbrl for Google/Alphabet 10k', function (done) {
-    var google10kOutput = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/google_10k.xml'
-    );
-    google10kOutput.then(r => {
+    var google10kOutput = ParseXbrl.parse('./test/sampleXbrlDocuments/google_10k.xml');
+    google10kOutput.then((r) => {
+      console.log(r);
       for (var key in r) {
         if (google10kParsed[key]) {
           expect(r[key]).toBe(google10kParsed[key]);
@@ -669,5 +666,32 @@ describe('parse-xbrl', function (done) {
       }
       done();
     });
+  });
+
+  it('should parse new documents', function (done) {
+    var newmsft = ParseXbrl.parse('./test/sampleXbrlDocuments/new_documents/xml_0.xml');
+
+    newmsft.then((resolve) => {
+      console.log(resolve);
+      expect(resolve['EntityRegistrantName']).toBe('MICROSOFT CORPORATION');
+
+      done();
+    });
+  });
+
+  iit('can load EntityRegistrantName', function (done) {
+    const data = fs.readFileSync('./test/sampleXbrlDocuments/new_documents/xml_0.xml', 'utf8');
+    //const data = fs.readFileSync('./test/sampleXbrlDocuments/ruby_tuesday_10q.xml', 'utf8');
+    const jsonObj = JSON.parse(xmlParser.toJson(data));
+    const o = {};
+    o.documentJson = jsonObj[Object.keys(jsonObj)[0]];
+    o.fields = {};
+    o.loadField = ParseXbrl.loadField.bind(o);
+    o.loadField('EntityRegistrantName');
+    o.loadField('CurrentFiscalYearEndDate');
+
+    expect(o.fields.EntityRegistrantName).toBe('MICROSOFT CORPORATION');
+    expect(/--\d\d-\d\d/.test(o.fields.CurrentFiscalYearEndDate)).toBeTrue;
+    done();
   });
 });
