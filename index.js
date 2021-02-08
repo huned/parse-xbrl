@@ -13,7 +13,10 @@
       fs.readFileAsync(filePath, 'utf8')
         .then((d) => new parseStr(d))
         .then((d) => resolve(d))
-        .catch((err) => reject('Problem with reading file', err));
+        .catch((err) => {
+          console.error(err);
+          reject('Problem with reading file');
+        });
     });
   }
 
@@ -26,7 +29,9 @@
     this.getNodeList = getNodeList.bind(this);
     this.getContextForInstants = getContextForInstants.bind(this);
     this.getContextForDurations = getContextForDurations.bind(this);
-    this.lookForAlternativeInstanceContext = lookForAlternativeInstanceContext.bind(this);
+    this.lookForAlternativeInstanceContext = lookForAlternativeInstanceContext.bind(
+      this
+    );
 
     return new Promise((resolve, reject) => {
       var jsonObj = JSON.parse(xmlParser.toJson(data));
@@ -42,8 +47,16 @@
       this.loadField('DocumentPeriodEndDate'); //OK
       this.loadField('DocumentFiscalYearFocus'); // GETS SOLVED LATER
       this.loadField('DocumentFiscalPeriodFocus'); //OK
-      this.loadField('DocumentFiscalYearFocus', 'DocumentFiscalYearFocusContext', 'contextRef'); // DocumentFiscalYearFocusContext ??
-      this.loadField('DocumentFiscalPeriodFocus', 'DocumentFiscalPeriodFocusContext', 'contextRef'); // ??
+      this.loadField(
+        'DocumentFiscalYearFocus',
+        'DocumentFiscalYearFocusContext',
+        'contextRef'
+      ); // DocumentFiscalYearFocusContext ??
+      this.loadField(
+        'DocumentFiscalPeriodFocus',
+        'DocumentFiscalPeriodFocusContext',
+        'contextRef'
+      ); // ??
       this.loadField('DocumentType'); // OK
 
       var currentYearEnd = this.loadYear();
@@ -51,8 +64,11 @@
         var durations = this.getContextForDurations(currentYearEnd);
 
         this.fields['BalanceSheetDate'] = durations.balanceSheetDate;
-        this.fields['IncomeStatementPeriodYTD'] = durations.incomeStatementPeriodYTD;
-        this.fields['ContextForInstants'] = this.getContextForInstants(currentYearEnd);
+        this.fields['IncomeStatementPeriodYTD'] =
+          durations.incomeStatementPeriodYTD;
+        this.fields['ContextForInstants'] = this.getContextForInstants(
+          currentYearEnd
+        );
         this.fields['ContextForDurations'] = durations.contextForDurations;
         this.fields['BalanceSheetDate'] = currentYearEnd;
 
@@ -88,10 +104,6 @@
     key = key || '$t';
     fieldName = fieldName || conceptToFind;
     var concept = search(this.documentJson, 'dei:' + conceptToFind);
-
-    if (conceptToFind === 'DocumentPeriodEndDate') {
-      console.log(`${conceptToFind}: `, concept);
-    }
 
     if (Array.isArray(concept)) {
       concept = _.find(concept, function (conceptInstance, idx) {
@@ -148,7 +160,9 @@
     try {
       return new Date(monthDay + year).toISOString().split('T')[0];
     } catch (err) {
-      throw new Error(`Cannot construct proper date with ${monthDay} and ${year}`);
+      throw new Error(
+        `Cannot construct proper date with ${monthDay} and ${year}`
+      );
     }
   }
 
@@ -182,8 +196,9 @@
     var allNodes = [];
 
     for (var i = 0; i < nodeNamesArr.length; i++) {
-      allNodes = allNodes.concat(_.get(root, nodeNamesArr[i]));
+      allNodes = allNodes.concat(search(root, nodeNamesArr[i]));
     }
+    allNodes = allNodes.flat();
 
     // Remove undefined nodes
     return _.filter(allNodes, function (node) {
@@ -210,7 +225,8 @@
     for (var i = 0; i < instanceNodesArr.length; i++) {
       contextId = instanceNodesArr[i].contextRef;
       contextPeriods =
-        _.get(this.documentJson, 'xbrli:context') || _.get(this.documentJson, 'context');
+        _.get(this.documentJson, 'xbrli:context') ||
+        _.get(this.documentJson, 'context');
 
       _.forEach(contextPeriods, function (period) {
         if (period.id === contextId) {
@@ -220,7 +236,11 @@
 
           if (contextPeriod && contextPeriod === endDate) {
             instanceHasExplicitMember =
-              _.get(period, ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'], false) ||
+              _.get(
+                period,
+                ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
+                false
+              ) ||
               _.get(period, ['entity', 'segment', 'explicitMember'], false);
             if (instanceHasExplicitMember) {
               // console.log('Instance has explicit member.');
@@ -240,68 +260,81 @@
     return contextForInstants;
   }
 
-  function getContextForDurations(endDate) {
-    var contextForDurations = null;
-    var contextId;
-    var contextPeriod;
-    var durationHasExplicitMember;
-    var startDateYTD = '2099-01-01';
-    var startDate;
+  function getVariable(object, conditions) {
+    for (let condition of conditions) {
+      if (_.get(object, condition)) return _.get(object, condition);
+    }
+    return null;
+  }
 
-    var durationNodesArr = this.getNodeList([
+  function getContext(object) {
+    let conditions = ['xbrli:context', 'context'];
+    return getVariable(object, conditions);
+  }
+
+  function getEndDate(object) {
+    let conditions = [
+      ['xbrli:period', 'xbrli:endDate'],
+      ['period', 'endDate']
+    ];
+    return getVariable(object, conditions);
+  }
+
+  //TODDO: The second condition has  a  default value  "false",
+  // should  we  need to add  it?
+  function durationHasExplicitMember(object) {
+    let conditions = [
+      ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
+      ['entity', 'segment', 'explicitMember']
+    ];
+    return getVariable(object, conditions);
+    // return (
+    //   _.get(
+    //     object,
+    //     ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
+    //     false
+    //   ) || _.get(object, ['entity', 'segment', 'explicitMember'], false)
+    // );
+  }
+
+  //TODO: what if date can't be found?
+  function getStartDate(object) {
+    let conditions = [
+      ['xbrli:period', 'xbrli:startDate'],
+      ['period', 'startDate']
+    ];
+    return getVariable(object, conditions);
+  }
+
+  function getContextForDurations(endDate) {
+    let contextForDurations = null;
+    let startDateYTD = '2099-01-01';
+
+    const durationNodes = this.getNodeList([
       'us-gaap:CashAndCashEquivalentsPeriodIncreaseDecrease',
       'us-gaap:CashPeriodIncreaseDecrease',
       'us-gaap:NetIncomeLoss',
       'dei:DocumentPeriodEndDate'
     ]);
 
-    for (var k = 0; k < durationNodesArr.length; k++) {
-      contextId = durationNodesArr[k].contextRef;
+    for (let k = 0; k < durationNodes.length; k++) {
+      const contextId = durationNodes[k].contextRef;
+      _.forEach(getContext(this.documentJson), function (period) {
+        if (period.id !== contextId) return;
 
-      _.forEach(
-        _.get(this.documentJson, 'xbrli:context') || _.get(this.documentJson, 'context'),
-        function (period) {
-          if (period.id === contextId) {
-            contextPeriod =
-              _.get(period, ['xbrli:period', 'xbrli:endDate']) ||
-              _.get(period, ['period', 'endDate']);
+        const contextPeriod = getEndDate(period);
 
-            if (contextPeriod === endDate) {
-              durationHasExplicitMember =
-                _.get(period, ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'], false) ||
-                _.get(period, ['entity', 'segment', 'explicitMember'], false);
+        if (contextPeriod !== endDate) return;
 
-              if (durationHasExplicitMember) {
-                // console.log('Duration has explicit member.');
-              } else {
-                startDate =
-                  _.get(period, ['xbrli:period', 'xbrli:startDate']) ||
-                  _.get(period, ['period', 'startDate']);
+        if (durationHasExplicitMember(period)) return;
 
-                // console.log('Context start date:', startDate);
-                // console.log('YTD start date:', startDateYTD);
+        const startDate = getStartDate(period);
 
-                if (startDate <= startDateYTD) {
-                  // console.log('Context start date is less than current year to date, replace');
-                  // console.log('Context start date: ', startDate);
-                  // console.log('Current min: ', startDateYTD);
-
-                  startDateYTD = startDate;
-                  contextForDurations = _.get(period, 'id');
-                } else {
-                  // console.log('Context start date is greater than YTD, keep current YTD');
-                  // console.log('Context start date: ', startDate);
-                }
-
-                // console.log('Use context ID: ', contextForDurations);
-                // console.log('Current min: ', startDateYTD);
-                // console.log('');
-                // console.log('Use context: ', contextForDurations);
-              }
-            }
-          }
+        if (new Date(startDate) <= new Date(startDateYTD)) {
+          startDateYTD = startDate;
+          contextForDurations = _.get(period, 'id');
         }
-      );
+      });
     }
 
     return {
@@ -313,8 +346,11 @@
   function lookForAlternativeInstanceContext() {
     var altContextId = null;
     var altNodesArr = _.filter(
-      _.get(this.documentJson, ['xbrli:context', 'xbrli:period', 'xbrli:instant']) ||
-        _.get(this.documentJson, ['context', 'period', 'instant']),
+      _.get(this.documentJson, [
+        'xbrli:context',
+        'xbrli:period',
+        'xbrli:instant'
+      ]) || _.get(this.documentJson, ['context', 'period', 'instant']),
       function (node) {
         if (node === this.fields['BalanceSheetDate']) {
           return true;
