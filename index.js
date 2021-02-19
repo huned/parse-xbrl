@@ -210,10 +210,6 @@
 
   function getContextForInstants(endDate) {
     var contextForInstants = null;
-    var contextId;
-    var contextPeriods;
-    var contextPeriod;
-    var instanceHasExplicitMember;
 
     // Uses the concept ASSETS to find the correct instance context
     var instanceNodesArr = this.getNodeList([
@@ -223,41 +219,25 @@
     ]);
 
     for (var i = 0; i < instanceNodesArr.length; i++) {
-      contextId = instanceNodesArr[i].contextRef;
-      contextPeriods =
-        _.get(this.documentJson, 'xbrli:context') ||
-        _.get(this.documentJson, 'context');
-
-      _.forEach(contextPeriods, function (period) {
-        if (period.id === contextId) {
-          contextPeriod =
-            _.get(period, ['xbrli:period', 'xbrli:instant']) ||
-            _.get(period, ['period', 'instant']);
-
-          if (contextPeriod && contextPeriod === endDate) {
-            instanceHasExplicitMember =
-              _.get(
-                period,
-                ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
-                false
-              ) ||
-              _.get(period, ['entity', 'segment', 'explicitMember'], false);
-            if (instanceHasExplicitMember) {
-              // console.log('Instance has explicit member.');
-            } else {
-              contextForInstants = contextId;
-              // console.log('Use Context:', contextForInstants);
-            }
-          }
+      const contextId = instanceNodesArr[i].contextRef;
+      _.forEach(getContext(this.documentJson), function (period) {
+        if (period.id !== contextId) {
+          return;
         }
+        if (getContextPeriod(period) !== endDate) {
+          return;
+        }
+        if (instanceHasExplicitMember(period)) {
+          return;
+        }
+        contextForInstants = contextId;
       });
     }
 
-    if (contextForInstants === null) {
-      contextForInstants = this.lookForAlternativeInstanceContext();
+    if (contextForInstants !== null) {
+      return contextForInstants;
     }
-
-    return contextForInstants;
+    return this.lookForAlternativeInstanceContext();
   }
 
   function getVariable(object, conditions) {
@@ -267,6 +247,13 @@
     return null;
   }
 
+  function getContextPeriod(object) {
+    let conditions = [
+      ['xbrli:period', 'xbrli:instant'],
+      ['period', 'instant']
+    ];
+    return getVariable(object, conditions);
+  }
   function getContext(object) {
     let conditions = ['xbrli:context', 'context'];
     return getVariable(object, conditions);
@@ -282,6 +269,14 @@
 
   //TODDO: The second condition has  a  default value  "false",
   // should  we  need to add  it?
+
+  function instanceHasExplicitMember(object) {
+    let conditions = [
+      ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
+      ['entity', 'segment', 'explicitMember']
+    ];
+    return getVariable(object, conditions);
+  }
   function durationHasExplicitMember(object) {
     let conditions = [
       ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
