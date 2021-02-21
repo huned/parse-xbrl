@@ -165,6 +165,9 @@ describe('parse-xbrl', function (done) {
     newO.loadField = ParseXbrl.loadField.bind(newO);
     oldO.loadField = ParseXbrl.loadField.bind(oldO);
 
+    // newO.getContextForDurations = ParseXbrl.getContextForDurations.bind(newO);
+    // oldO.getContextForDurations = ParseXbrl.getContextForDurations.bind(oldO);
+
     oldO.loadField('EntityRegistrantName');
     newO.loadField('EntityRegistrantName');
 

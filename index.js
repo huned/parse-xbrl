@@ -1,5 +1,8 @@
+//const { try } = require('bluebird');
+
 (function () {
   'use strict';
+  const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 
   var Promise = require('bluebird');
   var fs = Promise.promisifyAll(require('fs'));
@@ -59,27 +62,27 @@
       ); // ??
       this.loadField('DocumentType'); // OK
 
-      var currentYearEnd = this.loadYear();
-      if (currentYearEnd) {
-        var durations = this.getContextForDurations(currentYearEnd);
-
-        this.fields['BalanceSheetDate'] = durations.balanceSheetDate;
-        this.fields['IncomeStatementPeriodYTD'] =
-          durations.incomeStatementPeriodYTD;
-        this.fields['ContextForInstants'] = this.getContextForInstants(
-          currentYearEnd
-        );
-        this.fields['ContextForDurations'] = durations.contextForDurations;
-        this.fields['BalanceSheetDate'] = currentYearEnd;
-
-        // Load the rest of the facts
-        FundamentalAccountingConcepts.load(this);
-        resolve(this.fields);
-      } else {
-        reject('No year end found.');
+      const currentYearEnd = this.loadYear();
+      if (!currentYearEnd) {
+        return reject('No year end found.');
       }
+
+      const durations = this.getContextForDurations(currentYearEnd);
+
+      this.fields['IncomeStatementPeriodYTD'] =
+        durations.incomeStatementPeriodYTD;
+      this.fields['ContextForInstants'] = this.getContextForInstants(
+        currentYearEnd
+      );
+      this.fields['ContextForDurations'] = durations.contextForDurations;
+      this.fields['BalanceSheetDate'] = currentYearEnd;
+
+      // Load the rest of the facts
+      FundamentalAccountingConcepts.load(this);
+      resolve(this.fields);
     });
   }
+
   function search(tree, target) {
     let result = [];
 
@@ -126,32 +129,40 @@
       console.warn('CONTEXT ERROR');
     }
 
-    _.forEach(_.get(this.documentJson, concept), function (node) {
+    _.forEach(search(this.documentJson, concept), function (node) {
       if (node.contextRef === contextReference) {
         factNode = node;
       }
     });
 
-    if (factNode) {
-      factValue = factNode['$t'];
-
-      for (var key in factNode) {
-        if (key.indexOf('nil') >= 0) {
-          factValue = 0;
-        }
-      }
-      if (typeof factValue === 'string') {
-        factValue = Number(factValue);
-      }
-    } else {
+    if (!factNode) {
       return null;
     }
 
-    return factValue;
+    factValue = factNode['$t'];
+    for (const key in factNode) {
+      if (key.includes('nil')) {
+        factValue = 0;
+      }
+    }
+
+    if (typeof factValue === 'string') {
+      factValue = parseFloat(factValue);
+    }
+
+    const scalingFactor = findScaleFactor(factNode) || 1;
+    return factValue * scalingFactor;
   }
 
   //TODO: find better name for this function
   //isDateWithYearMonthDayFormat() is horrible...
+  function findScaleFactor(factNode) {
+    if (!factNode.scale) {
+      return 1;
+    }
+    const scalePower = Number(factNode.scale);
+    return 10 ** scalePower;
+  }
   function matchDateWithRegEx(date) {
     return date.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
   }
@@ -209,29 +220,29 @@
   }
 
   function getContextForInstants(endDate) {
-    var contextForInstants = null;
+    let contextForInstants = null;
+    const periods =
+      getContext(this.documentJson) ?? searchContext(this.documentJson);
 
     // Uses the concept ASSETS to find the correct instance context
-    var instanceNodesArr = this.getNodeList([
+    const nodes = this.getNodeList([
       'us-gaap:Assets',
       'us-gaap:AssetsCurrent',
       'us-gaap:LiabilitiesAndStockholdersEquity'
     ]);
 
-    for (var i = 0; i < instanceNodesArr.length; i++) {
-      const contextId = instanceNodesArr[i].contextRef;
-      _.forEach(getContext(this.documentJson), function (period) {
-        if (period.id !== contextId) {
-          return;
-        }
-        if (getContextPeriod(period) !== endDate) {
-          return;
-        }
-        if (instanceHasExplicitMember(period)) {
-          return;
-        }
-        contextForInstants = contextId;
-      });
+    for (const node of nodes) {
+      periods
+        .filter((period) => {
+          return (
+            period.id === node.contextRef &&
+            isSameDate(getContextInstant(period), endDate, MS_IN_A_DAY) &&
+            !instanceHasExplicitMember(period)
+          );
+        })
+        .forEach((period) => {
+          contextForInstants = period.id;
+        });
     }
 
     if (contextForInstants !== null) {
@@ -240,49 +251,63 @@
     return this.lookForAlternativeInstanceContext();
   }
 
-  function getVariable(object, conditions) {
-    for (let condition of conditions) {
-      if (_.get(object, condition)) return _.get(object, condition);
+  function getVariable(object, paths, defaultValue) {
+    return findVariable(object, paths, _.get);
+  }
+
+  function searchVariable(object, paths) {
+    return findVariable(object, paths, search);
+  }
+
+  function findVariable(object, paths, cb) {
+    for (let path of paths) {
+      if (cb(object, path)) return cb(object, path);
     }
     return null;
   }
 
-  function getContextPeriod(object) {
-    let conditions = [
+  function getContextInstant(object) {
+    const paths = [
       ['xbrli:period', 'xbrli:instant'],
       ['period', 'instant']
     ];
-    return getVariable(object, conditions);
+    return getVariable(object, paths);
   }
+
   function getContext(object) {
-    let conditions = ['xbrli:context', 'context'];
-    return getVariable(object, conditions);
+    const paths = ['xbrli:context', 'context'];
+    return getVariable(object, paths);
+  }
+
+  function searchContext(object) {
+    const paths = ['xbrli:context', 'context'];
+    return searchVariable(object, paths);
   }
 
   function getEndDate(object) {
-    let conditions = [
+    const paths = [
       ['xbrli:period', 'xbrli:endDate'],
       ['period', 'endDate']
     ];
-    return getVariable(object, conditions);
+    return getVariable(object, paths);
   }
 
-  //TODDO: The second condition has  a  default value  "false",
-  // should  we  need to add  it?
+  //TODO: The second condition has a default value  "false",
+  //should we add it? The answer isYes
 
   function instanceHasExplicitMember(object) {
-    let conditions = [
+    const paths = [
       ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
       ['entity', 'segment', 'explicitMember']
     ];
-    return getVariable(object, conditions);
+    return getVariable(object, paths);
   }
   function durationHasExplicitMember(object) {
-    let conditions = [
+    const paths = [
       ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
       ['entity', 'segment', 'explicitMember']
     ];
-    return getVariable(object, conditions);
+    return getVariable(object, paths);
     // return (
     //   _.get(
     //     object,
@@ -294,16 +319,26 @@
 
   //TODO: what if date can't be found?
   function getStartDate(object) {
-    let conditions = [
+    const paths = [
       ['xbrli:period', 'xbrli:startDate'],
       ['period', 'startDate']
     ];
-    return getVariable(object, conditions);
+    return getVariable(object, paths);
+  }
+
+  function isSameDate(a, b, epsilon = 0) {
+    return Math.abs(new Date(a) - new Date(b)) <= epsilon;
+  }
+
+  function isDifferentDate(a, b, epsilon) {
+    return !isSameDate(a, b, epsilon);
   }
 
   function getContextForDurations(endDate) {
     let contextForDurations = null;
     let startDateYTD = '2099-01-01';
+    const context =
+      getContext(this.documentJson) ?? searchContext(this.documentJson);
 
     const durationNodes = this.getNodeList([
       'us-gaap:CashAndCashEquivalentsPeriodIncreaseDecrease',
@@ -314,13 +349,10 @@
 
     for (let k = 0; k < durationNodes.length; k++) {
       const contextId = durationNodes[k].contextRef;
-      _.forEach(getContext(this.documentJson), function (period) {
+      _.forEach(context, function (period) {
         if (period.id !== contextId) return;
-
         const contextPeriod = getEndDate(period);
-
-        if (contextPeriod !== endDate) return;
-
+        if (isDifferentDate(contextPeriod, endDate, MS_IN_A_DAY)) return;
         if (durationHasExplicitMember(period)) return;
 
         const startDate = getStartDate(period);
@@ -366,4 +398,5 @@
   exports.parse = parse;
   exports.parseStr = parseStr;
   exports.loadField = loadField;
+  exports.getContextForDurations = getContextForDurations;
 })();
