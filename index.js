@@ -26,7 +26,7 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
     );
 
     return new Promise((resolve, reject) => {
-      var jsonObj = JSON.parse(xmlParser.toJson(data));
+      let jsonObj = JSON.parse(xmlParser.toJson(data));
       this.documentJson = jsonObj[Object.keys(jsonObj)[0]];
 
       // Calculate and load basic facts from json doc
@@ -95,7 +95,7 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
   function loadField(conceptToFind, fieldName, key) {
     key = key || '$t';
     fieldName = fieldName || conceptToFind;
-    var concept = search(this.documentJson, 'dei:' + conceptToFind);
+    let concept = search(this.documentJson, 'dei:' + conceptToFind);
 
     if (Array.isArray(concept)) {
       concept = _.find(concept, function (conceptInstance, idx) {
@@ -159,8 +159,8 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
   }
 
   function loadYear() {
-    var currentEnd = this.fields['DocumentPeriodEndDate'];
-    var currentYear = this.fields['DocumentFiscalYearFocus'];
+    let currentEnd = this.fields['DocumentPeriodEndDate'];
+    let currentYear = this.fields['DocumentFiscalYearFocus'];
 
     if (currentEnd.match(DATE_FORMAT)) {
       return currentEnd;
@@ -176,9 +176,9 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
 
   function getNodeList(nodeNamesArr, root) {
     root = root || this.documentJson;
-    var allNodes = [];
+    let allNodes = [];
 
-    for (var i = 0; i < nodeNamesArr.length; i++) {
+    for (let i = 0; i < nodeNamesArr.length; i++) {
       allNodes = allNodes.concat(search(root, nodeNamesArr[i]));
     }
     allNodes = allNodes.flat();
@@ -331,8 +331,8 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
   }
 
   function lookForAlternativeInstanceContext() {
-    var altContextId = null;
-    var altNodesArr = _.filter(
+    let altContextId = null;
+    let altNodesArr = _.filter(
       _.get(this.documentJson, [
         'xbrli:context',
         'xbrli:period',
@@ -345,7 +345,7 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
       }
     );
 
-    for (var h = 0; h < altNodesArr.length; h++) {
+    for (let h = 0; h < altNodesArr.length; h++) {
       _.forEach(_.get(this.documentJson, ['us-gaap:Assets']), function (node) {
         if (node.contextRef === altNodesArr[h].id) {
           altContextId = altNodesArr[h].id;
