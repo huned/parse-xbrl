@@ -1,5 +1,3 @@
-//const { try } = require('bluebird');
-const { executeSpecsInFolder } = require('jasmine-node');
 const xmlParser = require('xml2json');
 const ParseXbrl = require('../index.js');
 const fs = require('fs');
@@ -20,7 +18,7 @@ describe('parse-xbrl', function (done) {
     var amazon10kOutput = ParseXbrl.parse(
       './test/sampleXbrlDocuments/amazon_10k.xml'
     );
-    amazon10kOutput.then((results) => {
+    amazon10kOutput.then(results => {
       for (var key in results) {
         if (amazon10kParsed[key]) {
           expect(results[key]).toBe(amazon10kParsed[key]);
@@ -118,7 +116,7 @@ describe('parse-xbrl', function (done) {
     var google10kOutput = ParseXbrl.parse(
       './test/sampleXbrlDocuments/google_10k.xml'
     );
-    google10kOutput.then((r) => {
+    google10kOutput.then(r => {
       for (var key in r) {
         if (google10kParsed[key]) {
           expect(r[key]).toBe(google10kParsed[key]);
@@ -133,7 +131,7 @@ describe('parse-xbrl', function (done) {
       './test/sampleXbrlDocuments/new_documents/xml_0.xml'
     );
 
-    newmsft.then((resolve) => {
+    newmsft.then(resolve => {
       expect(resolve['EntityRegistrantName']).toBe('MICROSOFT CORPORATION');
 
       done();
