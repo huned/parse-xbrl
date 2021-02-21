@@ -1,29 +1,18 @@
-//const { try } = require('bluebird');
+const fs = require('fs').promises;
+const _ = require('lodash');
+const xmlParser = require('xml2json');
+const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
 
 (function () {
   'use strict';
   const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
-
-  var Promise = require('bluebird');
-  var fs = Promise.promisifyAll(require('fs'));
-  var _ = require('lodash');
-  var xmlParser = require('xml2json');
-  var FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
+  const DATE_FORMAT = /(\d{4})-(\d{1,2})-(\d{1,2})/;
 
   function parse(filePath) {
-    return new Promise(function (resolve, reject) {
-      // Load xml and parse to json
-      fs.readFileAsync(filePath, 'utf8')
-        .then((d) => new parseStr(d))
-        .then((d) => resolve(d))
-        .catch((err) => {
-          console.error(err);
-          reject('Problem with reading file');
-        });
-    });
+    return fs.readFile(filePath, 'utf8').then(d => new XbrlData(d));
   }
 
-  function parseStr(data) {
+  function XbrlData(data) {
     this.loadYear = loadYear.bind(this);
     this.loadField = loadField.bind(this);
     this.getFactValue = getFactValue.bind(this);
@@ -41,15 +30,15 @@
       this.documentJson = jsonObj[Object.keys(jsonObj)[0]];
 
       // Calculate and load basic facts from json doc
-      //CONTEXT REF MISSING?
+      // CONTEXT REF MISSING?
       this.loadField('EntityRegistrantName'); // OK
-      this.loadField('CurrentFiscalYearEndDate'); //?
-      this.loadField('EntityCentralIndexKey'); //OK
-      this.loadField('EntityFilerCategory'); //OK
-      this.loadField('TradingSymbol'); //OK
-      this.loadField('DocumentPeriodEndDate'); //OK
+      this.loadField('CurrentFiscalYearEndDate'); // ?
+      this.loadField('EntityCentralIndexKey'); // OK
+      this.loadField('EntityFilerCategory'); // OK
+      this.loadField('TradingSymbol'); // OK
+      this.loadField('DocumentPeriodEndDate'); // OK
       this.loadField('DocumentFiscalYearFocus'); // GETS SOLVED LATER
-      this.loadField('DocumentFiscalPeriodFocus'); //OK
+      this.loadField('DocumentFiscalPeriodFocus'); // OK
       this.loadField(
         'DocumentFiscalYearFocus',
         'DocumentFiscalYearFocusContext',
@@ -86,7 +75,7 @@
   function search(tree, target) {
     let result = [];
 
-    Object.keys(tree).forEach((key) => {
+    Object.keys(tree).forEach(key => {
       if (key === target) {
         return result.push(tree[key]);
       }
@@ -117,9 +106,9 @@
   }
 
   function getFactValue(concept, periodType) {
-    var contextReference;
-    var factNode;
-    var factValue;
+    let contextReference;
+    let factNode;
+    let factValue;
 
     if (periodType === 'Instant') {
       contextReference = this.fields['ContextForInstants'];
@@ -135,36 +124,19 @@
       }
     });
 
-    if (!factNode) {
-      return null;
-    }
+    if (!factNode) return null;
 
     factValue = factNode['$t'];
-    for (const key in factNode) {
-      if (key.includes('nil')) {
-        factValue = 0;
-      }
+    if (Object.keys(factNode).some(k => k.includes('nil'))) {
+      factValue = 0;
     }
 
     if (typeof factValue === 'string') {
       factValue = parseFloat(factValue);
     }
 
-    const scalingFactor = findScaleFactor(factNode) || 1;
-    return factValue * scalingFactor;
-  }
-
-  //TODO: find better name for this function
-  //isDateWithYearMonthDayFormat() is horrible...
-  function findScaleFactor(factNode) {
-    if (!factNode.scale) {
-      return 1;
-    }
-    const scalePower = Number(factNode.scale);
-    return 10 ** scalePower;
-  }
-  function matchDateWithRegEx(date) {
-    return date.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+    const scale = parseInt(factNode.scale) || 0;
+    return factValue * 10 ** scale;
   }
 
   function constructDateWithMultipleComponents(monthDay, year) {
@@ -190,7 +162,7 @@
     var currentEnd = this.fields['DocumentPeriodEndDate'];
     var currentYear = this.fields['DocumentFiscalYearFocus'];
 
-    if (matchDateWithRegEx(currentEnd)) {
+    if (currentEnd.match(DATE_FORMAT)) {
       return currentEnd;
     }
 
@@ -221,7 +193,7 @@
 
   function getContextForInstants(endDate) {
     let contextForInstants = null;
-    const periods =
+    const contexts =
       getContext(this.documentJson) ?? searchContext(this.documentJson);
 
     // Uses the concept ASSETS to find the correct instance context
@@ -232,16 +204,16 @@
     ]);
 
     for (const node of nodes) {
-      periods
-        .filter((period) => {
+      contexts
+        .filter(context => {
           return (
-            period.id === node.contextRef &&
-            isSameDate(getContextInstant(period), endDate, MS_IN_A_DAY) &&
-            !instanceHasExplicitMember(period)
+            context.id === node.contextRef &&
+            isSameDate(getContextInstant(context), endDate, MS_IN_A_DAY) &&
+            !instanceHasExplicitMember(context)
           );
         })
-        .forEach((period) => {
-          contextForInstants = period.id;
+        .forEach(context => {
+          contextForInstants = context.id;
         });
     }
 
@@ -292,9 +264,7 @@
     return getVariable(object, paths);
   }
 
-  //TODO: The second condition has a default value  "false",
-  //should we add it? The answer isYes
-
+  // TODO: add default values
   function instanceHasExplicitMember(object) {
     const paths = [
       ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
@@ -302,22 +272,16 @@
     ];
     return getVariable(object, paths);
   }
+
   function durationHasExplicitMember(object) {
     const paths = [
       ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
       ['entity', 'segment', 'explicitMember']
     ];
     return getVariable(object, paths);
-    // return (
-    //   _.get(
-    //     object,
-    //     ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
-    //     false
-    //   ) || _.get(object, ['entity', 'segment', 'explicitMember'], false)
-    // );
   }
 
-  //TODO: what if date can't be found?
+  // TODO: what if date can't be found?
   function getStartDate(object) {
     const paths = [
       ['xbrli:period', 'xbrli:startDate'],
@@ -330,38 +294,34 @@
     return Math.abs(new Date(a) - new Date(b)) <= epsilon;
   }
 
-  function isDifferentDate(a, b, epsilon) {
-    return !isSameDate(a, b, epsilon);
-  }
-
   function getContextForDurations(endDate) {
     let contextForDurations = null;
     let startDateYTD = '2099-01-01';
-    const context =
+    const contexts =
       getContext(this.documentJson) ?? searchContext(this.documentJson);
 
-    const durationNodes = this.getNodeList([
+    const nodes = this.getNodeList([
       'us-gaap:CashAndCashEquivalentsPeriodIncreaseDecrease',
       'us-gaap:CashPeriodIncreaseDecrease',
       'us-gaap:NetIncomeLoss',
       'dei:DocumentPeriodEndDate'
     ]);
 
-    for (let k = 0; k < durationNodes.length; k++) {
-      const contextId = durationNodes[k].contextRef;
-      _.forEach(context, function (period) {
-        if (period.id !== contextId) return;
-        const contextPeriod = getEndDate(period);
-        if (isDifferentDate(contextPeriod, endDate, MS_IN_A_DAY)) return;
-        if (durationHasExplicitMember(period)) return;
-
-        const startDate = getStartDate(period);
-
-        if (new Date(startDate) <= new Date(startDateYTD)) {
-          startDateYTD = startDate;
-          contextForDurations = _.get(period, 'id');
-        }
-      });
+    for (const node of nodes) {
+      contexts
+        .filter(
+          context =>
+            context.id === node.contextRef &&
+            isSameDate(getEndDate(context), endDate, MS_IN_A_DAY) &&
+            !durationHasExplicitMember(context)
+        )
+        .forEach(context => {
+          const startDate = getStartDate(context);
+          if (new Date(startDate) <= new Date(startDateYTD)) {
+            startDateYTD = startDate;
+            contextForDurations = context.id;
+          }
+        });
     }
 
     return {
@@ -396,7 +356,7 @@
   }
 
   exports.parse = parse;
-  exports.parseStr = parseStr;
+  exports.XbrlData = XbrlData;
   exports.loadField = loadField;
   exports.getContextForDurations = getContextForDurations;
 })();
