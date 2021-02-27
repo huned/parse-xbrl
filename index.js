@@ -170,6 +170,9 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
       return constructDateWithMultipleComponents(currentEnd, currentYear);
     }
 
+    const date = new Date(currentEnd);
+    if (!/Invalid date/.test(date)) return date;
+
     console.warn(currentEnd + ' is not a date');
     return false;
   }
