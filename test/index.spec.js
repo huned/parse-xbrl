@@ -139,7 +139,7 @@ describe('parse-xbrl', function (done) {
     });
   });
 
-  iit('Learning test', async function (done) {
+  it('Learning test', async function (done) {
     const documents = [
       './test/sampleXbrlDocuments/xbrls/2019/aapl/xml_0.xml',
       './test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml',

@@ -8,11 +8,76 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
   const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
   const DATE_FORMAT = /(\d{4})-(\d{1,2})-(\d{1,2})/;
 
-  function parse(filePath) {
-    return fs.readFile(filePath, 'utf8').then(d => new XbrlData(d));
+  async function parse(filePath) {
+    const contents = await fs.readFile(filePath, 'utf8');
+    return new XbrlData(contents);
   }
 
-  function XbrlData(data) {
+  class XbrlDataBuilder {
+    constructor() {
+      this.document = '';
+      this.field = {};
+    }
+
+    async parseFile(filePath) {
+      return this.parseString(await fs.readFile(filePath, 'utf8'));
+    }
+
+    async parseString(string) {
+      const data = JSON.parse(xmlParser.toJson(string));
+      this.document = data[Object.keys(data)[0]];
+      this.loadField('EntityRegistrantName');
+      this.loadField('CurrentFiscalYearEndDate');
+      this.loadField('EntityCentralIndexKey');
+      this.loadField('EntityFilerCategory');
+      this.loadField('TradingSymbol');
+      this.loadField('DocumentPeriodEndDate');
+      this.loadField('DocumentFiscalYearFocus');
+      this.loadField('DocumentFiscalPeriodFocus');
+      this.loadField(
+        'DocumentFiscalYearFocus',
+        'DocumentFiscalYearFocusContext',
+        'contextRef'
+      );
+      this.loadField(
+        'DocumentFiscalPeriodFocus',
+        'DocumentFiscalPeriodFocusContext',
+        'contextRef'
+      );
+      this.loadField('DocumentType');
+
+      const currentYearEnd = this.getYear();
+      console.log(`Current year end: ${currentYearEnd}`);
+      // TODO: continue from here
+
+      // return a clone of this.fields
+      return Object.assign({}, this.fields);
+    }
+
+    getYear() {
+      const currentEnd = this.fields['DocumentPeriodEndDate'];
+      const currentYear = this.fields['DocumentFiscalYearFocus'];
+
+      if (canConstructDateWithMultipleComponents(currentEnd, currentYear)) {
+        return constructDateWithMultipleComponents(currentEnd, currentYear);
+      }
+
+      const date = new Date(currentEnd);
+      if (!/Invalid date/.test(date)) return date;
+
+      throw new Error(`${currentEnd} is not a date!`);
+    }
+
+    loadField(conceptToFind, fieldName = conceptToFind, key = '$t') {
+      let concept = search(this.document, 'dei:' + conceptToFind);
+      if (Array.isArray(concept)) {
+        concept = _.find(concept, (conceptInstance, idx) => idx === 0);
+      }
+      this.fields[fieldName] = _.get(concept, key, 'Field not found');
+    }
+  }
+
+  function XbrlData(xmlContents) {
     this.loadYear = loadYear.bind(this);
     this.loadField = loadField.bind(this);
     this.getFactValue = getFactValue.bind(this);
@@ -25,9 +90,9 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
       this
     );
 
-    return new Promise((resolve, reject) => {
-      let jsonObj = JSON.parse(xmlParser.toJson(data));
-      this.documentJson = jsonObj[Object.keys(jsonObj)[0]];
+    const result = new Promise((resolve, reject) => {
+      const data = JSON.parse(xmlParser.toJson(xmlContents));
+      this.documentJson = data[Object.keys(data)[0]];
 
       // Calculate and load basic facts from json doc
       // CONTEXT REF MISSING?
@@ -70,6 +135,8 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
       FundamentalAccountingConcepts.load(this);
       resolve(this.fields);
     });
+
+    return result;
   }
 
   function search(tree, target) {
@@ -96,7 +163,6 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
     key = key || '$t';
     fieldName = fieldName || conceptToFind;
     let concept = search(this.documentJson, 'dei:' + conceptToFind);
-
     if (Array.isArray(concept)) {
       concept = _.find(concept, function (conceptInstance, idx) {
         return idx === 0;
@@ -141,7 +207,7 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
 
   function constructDateWithMultipleComponents(monthDay, year) {
     try {
-      return new Date(monthDay + year).toISOString().split('T')[0];
+      return new Date(monthDay + year).toISOString();
     } catch (err) {
       throw new Error(
         `Cannot construct proper date with ${monthDay} and ${year}`
@@ -362,4 +428,5 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
   exports.XbrlData = XbrlData;
   exports.loadField = loadField;
   exports.getContextForDurations = getContextForDurations;
+  exports.XbrlDataBuilder = XbrlDataBuilder;
 })();
