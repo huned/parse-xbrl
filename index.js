@@ -1,80 +1,21 @@
+'use strict';
 const fs = require('fs').promises;
 const _ = require('lodash');
 const xmlParser = require('xml2json');
 const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
+const {
+  search,
+  canConstructDateWithMultipleComponents,
+  constructDateWithMultipleComponents
+} = require('./src/utils');
 
 (function () {
-  'use strict';
   const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
   const DATE_FORMAT = /(\d{4})-(\d{1,2})-(\d{1,2})/;
 
   async function parse(filePath) {
     const contents = await fs.readFile(filePath, 'utf8');
     return new XbrlData(contents);
-  }
-
-  class XbrlDataBuilder {
-    constructor() {
-      this.document = '';
-      this.field = {};
-    }
-
-    async parseFile(filePath) {
-      return this.parseString(await fs.readFile(filePath, 'utf8'));
-    }
-
-    async parseString(string) {
-      const data = JSON.parse(xmlParser.toJson(string));
-      this.document = data[Object.keys(data)[0]];
-      this.loadField('EntityRegistrantName');
-      this.loadField('CurrentFiscalYearEndDate');
-      this.loadField('EntityCentralIndexKey');
-      this.loadField('EntityFilerCategory');
-      this.loadField('TradingSymbol');
-      this.loadField('DocumentPeriodEndDate');
-      this.loadField('DocumentFiscalYearFocus');
-      this.loadField('DocumentFiscalPeriodFocus');
-      this.loadField(
-        'DocumentFiscalYearFocus',
-        'DocumentFiscalYearFocusContext',
-        'contextRef'
-      );
-      this.loadField(
-        'DocumentFiscalPeriodFocus',
-        'DocumentFiscalPeriodFocusContext',
-        'contextRef'
-      );
-      this.loadField('DocumentType');
-
-      const currentYearEnd = this.getYear();
-      console.log(`Current year end: ${currentYearEnd}`);
-      // TODO: continue from here
-
-      // return a clone of this.fields
-      return Object.assign({}, this.fields);
-    }
-
-    getYear() {
-      const currentEnd = this.fields['DocumentPeriodEndDate'];
-      const currentYear = this.fields['DocumentFiscalYearFocus'];
-
-      if (canConstructDateWithMultipleComponents(currentEnd, currentYear)) {
-        return constructDateWithMultipleComponents(currentEnd, currentYear);
-      }
-
-      const date = new Date(currentEnd);
-      if (!/Invalid date/.test(date)) return date;
-
-      throw new Error(`${currentEnd} is not a date!`);
-    }
-
-    loadField(conceptToFind, fieldName = conceptToFind, key = '$t') {
-      let concept = search(this.document, 'dei:' + conceptToFind);
-      if (Array.isArray(concept)) {
-        concept = _.find(concept, (conceptInstance, idx) => idx === 0);
-      }
-      this.fields[fieldName] = _.get(concept, key, 'Field not found');
-    }
   }
 
   function XbrlData(xmlContents) {
@@ -139,26 +80,6 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
     return result;
   }
 
-  function search(tree, target) {
-    let result = [];
-
-    Object.keys(tree).forEach(key => {
-      if (key === target) {
-        return result.push(tree[key]);
-      }
-
-      if (tree[key]['name'] === target) {
-        return result.push(tree[key]);
-      }
-
-      if (typeof tree[key] === 'object') {
-        return result.push(search(tree[key], target));
-      }
-    });
-
-    return result.flat();
-  }
-
   function loadField(conceptToFind, fieldName, key) {
     key = key || '$t';
     fieldName = fieldName || conceptToFind;
@@ -203,25 +124,6 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
 
     const scale = parseInt(factNode.scale) || 0;
     return factValue * 10 ** scale;
-  }
-
-  function constructDateWithMultipleComponents(monthDay, year) {
-    try {
-      return new Date(monthDay + year).toISOString();
-    } catch (err) {
-      throw new Error(
-        `Cannot construct proper date with ${monthDay} and ${year}`
-      );
-    }
-  }
-
-  function canConstructDateWithMultipleComponents(monthDay, year) {
-    try {
-      constructDateWithMultipleComponents(monthDay, year);
-      return true;
-    } catch (ex) {
-      return false;
-    }
   }
 
   function loadYear() {
@@ -428,5 +330,4 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
   exports.XbrlData = XbrlData;
   exports.loadField = loadField;
   exports.getContextForDurations = getContextForDurations;
-  exports.XbrlDataBuilder = XbrlDataBuilder;
 })();

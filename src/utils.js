@@ -18,4 +18,36 @@ function search(object, target) {
   return result.flat();
 }
 
-module.exports = search;
+function getPropertyFrom(object, conceptToFind, key = '$t') {
+  let concept = search(object, 'dei:' + conceptToFind);
+  if (Array.isArray(concept)) {
+    concept = _.find(concept, (conceptInstance, idx) => idx === 0);
+  }
+  return _.get(concept, key, 'Field not found');
+}
+
+function constructDateWithMultipleComponents(monthDay, year) {
+  try {
+    return new Date(monthDay + year).toISOString();
+  } catch (err) {
+    throw new Error(
+      `Cannot construct proper date with ${monthDay} and ${year}`
+    );
+  }
+}
+
+function canConstructDateWithMultipleComponents(monthDay, year) {
+  try {
+    constructDateWithMultipleComponents(monthDay, year);
+    return true;
+  } catch (ex) {
+    return false;
+  }
+}
+
+module.exports = {
+  search,
+  getPropertyFrom,
+  constructDateWithMultipleComponents,
+  canConstructDateWithMultipleComponents
+};
