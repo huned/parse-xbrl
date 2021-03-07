@@ -2,7 +2,7 @@
 const fs = require('fs').promises;
 const _ = require('lodash');
 const xmlParser = require('xml2json');
-const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
+const FundamentalAccountingConcepts = require('./src/FundamentalAccountingConcepts.js');
 const {
   search,
   canConstructDateWithMultipleComponents,
@@ -145,21 +145,15 @@ const {
     return false;
   }
 
-  function getNodeList(nodeNamesArr, root) {
+  function getNodeList(names, root) {
     root = root || this.documentJson;
-    let allNodes = [];
+    const allNodes = [];
 
-    for (let i = 0; i < nodeNamesArr.length; i++) {
-      allNodes = allNodes.concat(search(root, nodeNamesArr[i]));
+    for (const name of names) {
+      allNodes.push(...search(root, name));
     }
-    allNodes = allNodes.flat();
 
-    // Remove undefined nodes
-    return _.filter(allNodes, function (node) {
-      if (node) {
-        return true;
-      }
-    });
+    return allNodes.flat().filter(n => typeof n !== 'undefined');
   }
 
   function getContextForInstants(endDate) {

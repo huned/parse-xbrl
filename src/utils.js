@@ -45,9 +45,27 @@ function canConstructDateWithMultipleComponents(monthDay, year) {
   }
 }
 
+function getNodeList(nodeNamesArr, root) {
+  root = root || this.documentJson;
+  let allNodes = [];
+
+  for (let i = 0; i < nodeNamesArr.length; i++) {
+    allNodes = allNodes.concat(search(root, nodeNamesArr[i]));
+  }
+  allNodes = allNodes.flat();
+
+  // Remove undefined nodes
+  return _.filter(allNodes, function (node) {
+    if (node) {
+      return true;
+    }
+  });
+}
+
 module.exports = {
   search,
   getPropertyFrom,
   constructDateWithMultipleComponents,
-  canConstructDateWithMultipleComponents
+  canConstructDateWithMultipleComponents,
+  getNodeList
 };

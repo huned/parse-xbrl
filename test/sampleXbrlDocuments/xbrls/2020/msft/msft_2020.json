@@ -13,7 +13,7 @@
   "IncomeStatementPeriodYTD": "2019-07-01",
   "ContextForInstants": "C_0000789019_20200630",
   "ContextForDurations": "C_0000789019_20190701_20200630",
-  "BalanceSheetDate": "2020-06-29",
+  "BalanceSheetDate": "2020-06-29T22:00:00.000Z",
   "Assets": 301000000,
   "CurrentAssets": 181000000,
   "NoncurrentAssets": 120000000,

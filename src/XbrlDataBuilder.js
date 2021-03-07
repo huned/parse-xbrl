@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const _ = require('lodash');
 const xmlParser = require('xml2json');
-const FundamentalAccountingConcepts = require('../FundamentalAccountingConcepts.js');
+const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
 
 class XbrlDataBuilder {
   constructor() {

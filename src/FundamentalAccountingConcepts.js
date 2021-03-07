@@ -1456,5 +1456,5 @@ function load(xbrlDoc) {
 }
 
 module.exports = {
-  load: load
+  load
 };
