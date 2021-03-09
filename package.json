@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "test": "jasmine-node test/index.spec.js",
-    "watch-test": "nodemon --exec jasmine-node test/index.spec.js"
+    "test:watch": "jasmine-node test/index.spec.js --autotest --watch src test",
+    "pretty": "prettier --write './{src,test}/**/*.js'"
   },
   "publishConfig": {
     "registry": "http://registry.npmjs.org"
