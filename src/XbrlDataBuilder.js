@@ -57,8 +57,7 @@ class XbrlDataBuilder {
     // Load the rest of the facts
     FundamentalAccountingConcepts.load(this);
 
-    // return a clone of this.fields
-    return Object.assign({}, this.fields);
+    return this.fields;
   }
 
   getYear() {
