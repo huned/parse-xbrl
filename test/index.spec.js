@@ -1,9 +1,9 @@
 const ParseXbrl = require('../index.js');
-
+const { expect } = require('chai');
 const {
   wlRossHolingCorp10kParsed,
   amazon10kParsed,
-  cannabicsPharmaceuticals10kParsed,
+  cannabicsPharmaceuticals10kParsed: cannabicsPharma10kParsed,
   costco10kParsed,
   transatlanticCapital10kParsed,
   sweetsAndTreats10qParsed,
@@ -12,100 +12,103 @@ const {
 } = loadData();
 
 describe('parse-xbrl', function () {
-  it('should parse the xbrl for Amazon 10k', async function (done) {
+  it('should parse the xbrl for Amazon 10k', async () => {
     const result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/amazon_10k.xml'
     );
+
     for (const field in result) {
       if (amazon10kParsed[field]) {
-        expect(result[field]).toBe(amazon10kParsed[field]);
+        expect(result[field]).to.equal(
+          amazon10kParsed[field],
+          `At field ${field}`
+        );
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for Cannabics Pharmaceuticals Inc. 10k', async function (done) {
+  it('should parse the xbrl for Cannabics Pharmaceuticals Inc. 10k', async () => {
     var result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/cannabics_pharmaceuticals_inc_10k.xml'
     );
+
     for (const field in result) {
-      if (cannabicsPharmaceuticals10kParsed[field]) {
-        expect(result[field]).toBe(cannabicsPharmaceuticals10kParsed[field]);
+      if (cannabicsPharma10kParsed[field]) {
+        expect(result[field]).to.equal(cannabicsPharma10kParsed[field]);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for Costco Inc. 10k', async function (done) {
+  it('should parse the xbrl for Costco Inc. 10k', async () => {
     const result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/costco_inc_10k.xml'
     );
+
     for (const field in result) {
       if (costco10kParsed[field]) {
-        expect(result[field]).toBe(costco10kParsed[field]);
+        expect(result[field]).to.equal(costco10kParsed[field]);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for Transatlantic Capital Inc. 10k', async function (done) {
+  it('should parse the xbrl for Transatlantic Capital Inc. 10k', async () => {
     const result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/transatlantic_capital_inc_10k.xml'
     );
+
     for (const field in result) {
       if (transatlanticCapital10kParsed[field]) {
-        expect(result[field]).toBe(transatlanticCapital10kParsed[field]);
+        expect(result[field]).to.equal(transatlanticCapital10kParsed[field]);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for WL Ross Holding Corp 10k', async function (done) {
+  it('should parse the xbrl for WL Ross Holding Corp 10k', async () => {
     const result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/wl_ross_holding_corp_10k.xml'
     );
+
     for (const field in result) {
       if (wlRossHolingCorp10kParsed[field]) {
-        expect(result[field]).toBe(wlRossHolingCorp10kParsed[field]);
+        expect(result[field]).to.equal(wlRossHolingCorp10kParsed[field]);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for Sweets and Treats 10q', async function (done) {
+  it('should parse the xbrl for Sweets and Treats 10q', async () => {
     const result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/sweets_and_treats_10q.xml'
     );
+
     for (const field in result) {
       if (sweetsAndTreats10qParsed[field]) {
-        expect(result[field]).toBe(sweetsAndTreats10qParsed[field]);
+        expect(result[field]).to.equal(sweetsAndTreats10qParsed[field]);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for Ruby Tuesday 10q', async function (done) {
+  it('should parse the xbrl for Ruby Tuesday 10q', async () => {
     const result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/ruby_tuesday_10q.xml'
     );
+
     for (const field in result) {
       if (rubyTuesday10qParsed[field]) {
-        expect(result[field]).toBe(rubyTuesday10qParsed[field]);
+        expect(result[field]).to.equal(rubyTuesday10qParsed[field]);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for Google/Alphabet 10k', async function (done) {
+  it('should parse the xbrl for Google/Alphabet 10k', async () => {
     const result = await ParseXbrl.parse(
       './test/sampleXbrlDocuments/google_10k.xml'
     );
+
     for (const field in result) {
       if (google10kParsed[field]) {
-        expect(result[field]).toBe(google10kParsed[field]);
+        expect(result[field]).to.equal(google10kParsed[field]);
       }
     }
-    done();
   });
 });
 
@@ -431,7 +434,7 @@ function loadData() {
     OtherOperatingIncome: 0,
     EquityAttributableToParent: -309626,
     GrossProfit: 0,
-    TradingSymbol: 'Field not found.',
+    TradingSymbol: 'Field not found',
     NetCashFlow: 0,
     DocumentFiscalYearFocus: '2015',
     IncomeFromDiscontinuedOperations: 0,
@@ -569,7 +572,7 @@ function loadData() {
     OtherOperatingIncome: 0,
     EquityAttributableToParent: -144968,
     GrossProfit: 0,
-    TradingSymbol: 'Field not found.',
+    TradingSymbol: 'Field not found',
     NetCashFlow: 0,
     DocumentFiscalYearFocus: '2014',
     IncomeFromDiscontinuedOperations: 0,
@@ -639,7 +642,7 @@ function loadData() {
     OtherOperatingIncome: 0,
     EquityAttributableToParent: -34509,
     GrossProfit: 54,
-    TradingSymbol: 'Field not found.',
+    TradingSymbol: 'Field not found',
     NetCashFlow: -47,
     DocumentFiscalYearFocus: '2016',
     IncomeFromDiscontinuedOperations: 0,

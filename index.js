@@ -1,5 +1,5 @@
 'use strict';
-const fs = require('fs').promises;
+// const fs = require('fs').promises;
 const _ = require('lodash');
 const xmlParser = require('xml2json');
 const FundamentalAccountingConcepts = require('./src/FundamentalAccountingConcepts.js');
@@ -8,15 +8,16 @@ const {
   canConstructDateWithMultipleComponents,
   constructDateWithMultipleComponents
 } = require('./src/utils');
-// const XbrlDataBuilder = require('./src/XbrlDataBuilder');
+const XbrlDataBuilder = require('./src/XbrlDataBuilder');
 
 (function () {
   const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
   const DATE_FORMAT = /(\d{4})-(\d{1,2})-(\d{1,2})/;
 
   async function parse(filePath) {
-    const contents = await fs.readFile(filePath, 'utf8');
-    return new XbrlData(contents);
+    return await new XbrlDataBuilder().parseFile(filePath);
+    // const contents = await fs.readFile(filePath, 'utf8');
+    // return await new XbrlData(contents);
   }
 
   function XbrlData(xmlContents) {
@@ -67,10 +68,13 @@ const {
 
       this.fields['IncomeStatementPeriodYTD'] =
         durations.incomeStatementPeriodYTD;
+
       this.fields['ContextForInstants'] = this.getContextForInstants(
         currentYearEnd
       );
+
       this.fields['ContextForDurations'] = durations.contextForDurations;
+
       this.fields['BalanceSheetDate'] = currentYearEnd;
 
       // Load the rest of the facts

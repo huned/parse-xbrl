@@ -1,12 +1,14 @@
 const fs = require('fs').promises;
+const _ = require('lodash');
 const xmlParser = require('xml2json');
 const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
 const utils = require('./utils');
 
+const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 class XbrlDataBuilder {
   constructor() {
     this.document = '';
-    this.field = {};
+    this.fields = {};
   }
 
   async parseFile(filePath) {
@@ -37,21 +39,19 @@ class XbrlDataBuilder {
     this.loadField('DocumentType');
 
     const currentYearEnd = this.getYear();
-    console.log(`Current year end: ${currentYearEnd}`);
+    if (!currentYearEnd) throw new Error('No end year found');
 
     const durations = this.getContextForDurations(currentYearEnd);
 
-    this.fields['IncomeStatementPeriodYTD'] = utils.getPropertyFrom(
-      durations,
-      'incomeStatementPeriodYTD'
-    );
+    this.fields['IncomeStatementPeriodYTD'] =
+      durations.incomeStatementPeriodYTD;
+
     this.fields['ContextForInstants'] = this.getContextForInstants(
       currentYearEnd
     );
-    this.fields['ContextForDurations'] = utils.getPropertyFrom(
-      durations,
-      'contextForDurations'
-    );
+
+    this.fields['ContextForDurations'] = durations.contextForDurations;
+
     this.fields['BalanceSheetDate'] = currentYearEnd;
 
     // Load the rest of the facts
@@ -75,12 +75,193 @@ class XbrlDataBuilder {
   }
 
   loadField(conceptToFind, fieldName = conceptToFind, key = '$t') {
-    this.fields[fieldName] = this.getPropertyFrom(
+    this.fields[fieldName] = utils.getPropertyFrom(
       this.document,
       conceptToFind,
-      fieldName,
       key
     );
+  }
+
+  getContext(object) {
+    const paths = ['xbrli:context', 'context'];
+    return utils.getVariable(object, paths);
+  }
+
+  searchContext(object) {
+    const paths = ['xbrli:context', 'context'];
+    return utils.searchVariable(object, paths);
+  }
+
+  getEndDate(object) {
+    const paths = [
+      ['xbrli:period', 'xbrli:endDate'],
+      ['period', 'endDate']
+    ];
+    return utils.getVariable(object, paths);
+  }
+
+  hasExplicitMember(object) {
+    const paths = [
+      ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
+      ['entity', 'segment', 'explicitMember']
+    ];
+    return utils.getVariable(object, paths);
+  }
+
+  getStartDate(object) {
+    const paths = [
+      ['xbrli:period', 'xbrli:startDate'],
+      ['period', 'startDate']
+    ];
+    return utils.getVariable(object, paths);
+  }
+
+  getNodeList(names) {
+    const allNodes = [];
+
+    for (const name of names) {
+      allNodes.push(...utils.search(this.document, name));
+    }
+
+    return allNodes.flat().filter(n => typeof n !== 'undefined');
+  }
+
+  getContextForDurations(endDate) {
+    let contextForDurations = null;
+    let startDateYTD = '2099-01-01';
+    const contexts =
+      this.getContext(this.document) ?? this.searchContext(this.document);
+
+    const nodes = this.getNodeList([
+      'us-gaap:CashAndCashEquivalentsPeriodIncreaseDecrease',
+      'us-gaap:CashPeriodIncreaseDecrease',
+      'us-gaap:NetIncomeLoss',
+      'dei:DocumentPeriodEndDate'
+    ]);
+
+    for (const node of nodes) {
+      contexts
+        .filter(
+          context =>
+            context.id === node.contextRef &&
+            utils.isSameDate(this.getEndDate(context), endDate, MS_IN_A_DAY) &&
+            !this.hasExplicitMember(context)
+        )
+        .forEach(context => {
+          const startDate = this.getStartDate(context);
+          if (new Date(startDate) <= new Date(startDateYTD)) {
+            startDateYTD = startDate;
+            contextForDurations = context.id;
+          }
+        });
+    }
+
+    return {
+      contextForDurations: contextForDurations,
+      incomeStatementPeriodYTD: startDateYTD
+    };
+  }
+
+  getContextForInstants(endDate) {
+    let contextForInstants = null;
+    const contexts =
+      this.getContext(this.document) ?? this.searchContext(this.document);
+
+    // Uses the concept ASSETS to find the correct instant context
+    const nodes = this.getNodeList([
+      'us-gaap:Assets',
+      'us-gaap:AssetsCurrent',
+      'us-gaap:LiabilitiesAndStockholdersEquity'
+    ]);
+
+    for (const node of nodes) {
+      contexts
+        .filter(
+          context =>
+            context.id === node.contextRef &&
+            utils.isSameDate(
+              this.getContextInstant(context),
+              endDate,
+              MS_IN_A_DAY
+            ) &&
+            !this.hasExplicitMember(context)
+        )
+        .forEach(context => {
+          contextForInstants = context.id;
+        });
+    }
+
+    if (contextForInstants !== null) {
+      return contextForInstants;
+    }
+    return this.lookForAlternativeInstantsContext();
+  }
+
+  getContextInstant(object) {
+    const paths = [
+      ['xbrli:period', 'xbrli:instant'],
+      ['period', 'instant']
+    ];
+    return utils.getVariable(object, paths);
+  }
+
+  lookForAlternativeInstantsContext() {
+    let altContextId = null;
+    let altNodesArr = _.filter(
+      _.get(this.document, [
+        'xbrli:context',
+        'xbrli:period',
+        'xbrli:instant'
+      ]) || _.get(this.document, ['context', 'period', 'instant']),
+      function (node) {
+        if (node === this.fields['BalanceSheetDate']) {
+          return true;
+        }
+      }
+    );
+
+    for (let h = 0; h < altNodesArr.length; h++) {
+      _.forEach(_.get(this.document, ['us-gaap:Assets']), function (node) {
+        if (node.contextRef === altNodesArr[h].id) {
+          altContextId = altNodesArr[h].id;
+        }
+      });
+    }
+    return altContextId;
+  }
+
+  getFactValue(concept, periodType) {
+    let contextReference;
+    let factNode;
+    let factValue;
+
+    if (periodType === 'Instant') {
+      contextReference = this.fields['ContextForInstants'];
+    } else if (periodType === 'Duration') {
+      contextReference = this.fields['ContextForDurations'];
+    } else {
+      console.warn('CONTEXT ERROR');
+    }
+
+    _.forEach(utils.search(this.document, concept), function (node) {
+      if (node.contextRef === contextReference) {
+        factNode = node;
+      }
+    });
+
+    if (!factNode) return null;
+
+    factValue = factNode['$t'];
+    if (Object.keys(factNode).some(k => k.includes('nil'))) {
+      factValue = 0;
+    }
+
+    if (typeof factValue === 'string') {
+      factValue = parseFloat(utils.formatNumber(factNode.format, factValue));
+    }
+
+    const scale = parseInt(factNode.scale) || 0;
+    return factValue * 10 ** scale;
   }
 }
 

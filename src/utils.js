@@ -64,10 +64,45 @@ function getNodeList(nodeNamesArr, root) {
   });
 }
 
+function isSameDate(a, b, epsilon = 0) {
+  return Math.abs(new Date(a) - new Date(b)) <= epsilon;
+}
+
+function getVariable(object, paths, defaultValue) {
+  return findVariable(object, paths, _.get);
+}
+
+function searchVariable(object, paths) {
+  return findVariable(object, paths, search);
+}
+
+function findVariable(object, paths, cb) {
+  for (let path of paths) {
+    if (cb(object, path)) return cb(object, path);
+  }
+  return null;
+}
+
+function formatNumber(format, number) {
+  if (!format) return number;
+
+  if (format === 'ixt:numdotdecimal') {
+    return number.replace(/,/g, '');
+  } else if (format === 'ixt:numcommadecimal') {
+    return number.replace(/\./g, '').replace(/,/g, '.');
+  } else {
+    throw new Error(`Unknown format: ${format}`);
+  }
+}
+
 module.exports = {
   search,
   getPropertyFrom,
   constructDateWithMultipleComponents,
   canConstructDateWithMultipleComponents,
-  getNodeList
+  getNodeList,
+  isSameDate,
+  getVariable,
+  searchVariable,
+  formatNumber
 };
