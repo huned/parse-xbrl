@@ -12,10 +12,10 @@ class XBRL {
   }
 
   async parseFile(filePath) {
-    return this.parseString(await fs.readFile(filePath, 'utf8'));
+    return this.parseStr(await fs.readFile(filePath, 'utf8'));
   }
 
-  async parseString(string) {
+  async parseStr(string) {
     const data = JSON.parse(xmlParser.toJson(string));
     this.document = data[Object.keys(data)[0]];
     this.loadField('EntityRegistrantName');
