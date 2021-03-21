@@ -21,10 +21,7 @@ function search(object, target) {
 }
 
 function getPropertyFrom(object, conceptToFind, key = '$t') {
-  let concept = search(object, 'dei:' + conceptToFind);
-  if (Array.isArray(concept)) {
-    concept = _.find(concept, (conceptInstance, idx) => idx === 0);
-  }
+  const concept = search(object, 'dei:' + conceptToFind).shift();
   return _.get(concept, key, 'Field not found');
 }
 

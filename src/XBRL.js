@@ -5,7 +5,7 @@ const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.j
 const utils = require('./utils');
 
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
-class XbrlDataBuilder {
+class XBRL {
   constructor() {
     this.document = '';
     this.fields = {};
@@ -68,18 +68,13 @@ class XbrlDataBuilder {
       return utils.constructDateWithMultipleComponents(currentEnd, currentYear);
     }
 
-    const date = new Date(currentEnd);
-    if (!/Invalid date/.test(date)) return date;
+    if (!/Invalid date/.test(new Date(currentEnd))) return currentEnd;
 
     throw new Error(`${currentEnd} is not a date!`);
   }
 
-  loadField(conceptToFind, fieldName = conceptToFind, key = '$t') {
-    this.fields[fieldName] = utils.getPropertyFrom(
-      this.document,
-      conceptToFind,
-      key
-    );
+  loadField(concept, fieldName = concept, key = '$t') {
+    this.fields[fieldName] = utils.getPropertyFrom(this.document, concept, key);
   }
 
   getContext(object) {
@@ -265,4 +260,4 @@ class XbrlDataBuilder {
   }
 }
 
-module.exports = XbrlDataBuilder;
+module.exports = XBRL;

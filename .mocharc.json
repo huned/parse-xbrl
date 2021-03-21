@@ -3,6 +3,7 @@
   "extension": ["js"],
   "package": "./package.json",
   "recursive": true,
+  "slow": "1500",
   "spec": ["test/**/*.spec.js"],
   "watchFiles": ["index.js","'src/**/*.js'", "'test/**/*.spec.js'"]
  }
