@@ -119,11 +119,23 @@ const {
     }
 
     if (typeof factValue === 'string') {
-      factValue = parseFloat(factValue);
+      factValue = parseFloat(formatNumber(factNode.format, factValue));
     }
 
     const scale = parseInt(factNode.scale) || 0;
     return factValue * 10 ** scale;
+  }
+
+  function formatNumber(format, number) {
+    if (!format) return number;
+
+    if (format === 'ixt:numdotdecimal') {
+      return number.replace(/,/g, '');
+    } else if (format === 'ixt:numcommadecimal') {
+      return number.replace(/\./g, '').replace(/,/g, '.');
+    } else {
+      throw new Error(`Unknown format: ${format}`);
+    }
   }
 
   function loadYear() {

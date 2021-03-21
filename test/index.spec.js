@@ -1,7 +1,4 @@
-const xmlParser = require('xml2json');
 const ParseXbrl = require('../index.js');
-const fs = require('fs');
-const path = require('path');
 
 const {
   wlRossHolingCorp10kParsed,
@@ -11,9 +8,7 @@ const {
   transatlanticCapital10kParsed,
   sweetsAndTreats10qParsed,
   rubyTuesday10qParsed,
-  google10kParsed,
-  tsla10K2020Parsed,
-  aapl10K2020Parsed
+  google10kParsed
 } = loadData();
 
 describe('parse-xbrl', function (done) {
@@ -127,131 +122,6 @@ describe('parse-xbrl', function (done) {
       }
       done();
     });
-  });
-
-  it('should parse the xbrl for AAPL 10k 2020', function (done) {
-    const apple10kOutput = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml'
-    );
-    apple10kOutput.then(r => {
-      for (var key in r) {
-        if (aapl10K2020Parsed[key]) {
-          expect(r[key]).toBe(aapl10K2020Parsed[key]);
-        }
-      }
-      done();
-    });
-  });
-
-  it('should parse the xbrl for TSLA 10k 2020', function (done) {
-    const tsla10kOutput = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml'
-    );
-    tsla10kOutput.then(r => {
-      for (var key in r) {
-        if (tsla10K2020Parsed[key]) {
-          expect(r[key]).toBe(tsla10K2020Parsed[key]);
-        }
-      }
-      done();
-    });
-  });
-
-  it('should parse new documents', function (done) {
-    var newmsft = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/new_documents/xml_0.xml'
-    );
-
-    newmsft.then(resolve => {
-      expect(resolve['EntityRegistrantName']).toBe('MICROSOFT CORPORATION');
-
-      done();
-    });
-  });
-
-  it('can load EntityRegistrantName', function (done) {
-    const oldData = fs.readFileSync(
-      './test/sampleXbrlDocuments/ruby_tuesday_10q.xml',
-      'utf8'
-    );
-    const newData = fs.readFileSync(
-      './test/sampleXbrlDocuments/new_documents/xml_0.xml',
-      'utf8'
-    );
-
-    const oldJsonObj = JSON.parse(xmlParser.toJson(oldData));
-    const newJsonObj = JSON.parse(xmlParser.toJson(newData));
-
-    const newO = {};
-    const oldO = {};
-
-    oldO.documentJson = oldJsonObj[Object.keys(oldJsonObj)[0]];
-    newO.documentJson = newJsonObj[Object.keys(newJsonObj)[0]];
-
-    oldO.fields = {};
-    newO.fields = {};
-
-    newO.loadField = ParseXbrl.loadField.bind(newO);
-    oldO.loadField = ParseXbrl.loadField.bind(oldO);
-
-    // newO.getContextForDurations = ParseXbrl.getContextForDurations.bind(newO);
-    // oldO.getContextForDurations = ParseXbrl.getContextForDurations.bind(oldO);
-
-    oldO.loadField('EntityRegistrantName');
-    newO.loadField('EntityRegistrantName');
-
-    oldO.loadField('CurrentFiscalYearEndDate');
-    newO.loadField('CurrentFiscalYearEndDate');
-
-    oldO.loadField('EntityCentralIndexKey');
-    newO.loadField('EntityCentralIndexKey');
-
-    oldO.loadField('EntityFilerCategory');
-    newO.loadField('EntityFilerCategory');
-
-    oldO.loadField('TradingSymbol');
-    newO.loadField('TradingSymbol');
-
-    oldO.loadField('DocumentPeriodEndDate');
-    newO.loadField('DocumentPeriodEndDate');
-
-    oldO.loadField('DocumentFiscalYearFocus');
-    newO.loadField('DocumentFiscalYearFocus');
-
-    oldO.loadField('DocumentFiscalPeriodFocus');
-    newO.loadField('DocumentFiscalPeriodFocus');
-
-    oldO.loadField(
-      'DocumentFiscalYearFocus',
-      'DocumentFiscalYearFocusContext',
-      'contextRef'
-    );
-    newO.loadField(
-      'DocumentFiscalYearFocus',
-      'DocumentFiscalYearFocusContext',
-      'contextRef'
-    );
-
-    oldO.loadField(
-      'DocumentFiscalPeriodFocus',
-      'DocumentFiscalPeriodFocusContext',
-      'contextRef'
-    );
-    newO.loadField(
-      'DocumentFiscalPeriodFocus',
-      'DocumentFiscalPeriodFocusContext',
-      'contextRef'
-    );
-
-    for (let key in newO.fields) {
-      console.log(
-        `\n ${key} differences:\n old: ${oldO.fields[key]}  \n new:${newO.fields[key]}`
-      );
-    }
-
-    expect(newO.fields.EntityRegistrantName).toBe('MICROSOFT CORPORATION');
-    expect(/--\d\d-\d\d/.test(newO.fields.CurrentFiscalYearEndDate)).toBeTrue;
-    done();
   });
 });
 

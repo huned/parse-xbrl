@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 function search(object, target) {
   const result = [];
 

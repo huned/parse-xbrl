@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
-const _ = require('lodash');
 const xmlParser = require('xml2json');
 const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
+const utils = require('./utils');
 
 class XbrlDataBuilder {
   constructor() {
@@ -41,14 +41,14 @@ class XbrlDataBuilder {
 
     const durations = this.getContextForDurations(currentYearEnd);
 
-    this.fields['IncomeStatementPeriodYTD'] = getPropertyFrom(
+    this.fields['IncomeStatementPeriodYTD'] = utils.getPropertyFrom(
       durations,
       'incomeStatementPeriodYTD'
     );
     this.fields['ContextForInstants'] = this.getContextForInstants(
       currentYearEnd
     );
-    this.fields['ContextForDurations'] = getPropertyFrom(
+    this.fields['ContextForDurations'] = utils.getPropertyFrom(
       durations,
       'contextForDurations'
     );
@@ -65,8 +65,8 @@ class XbrlDataBuilder {
     const currentEnd = this.fields['DocumentPeriodEndDate'];
     const currentYear = this.fields['DocumentFiscalYearFocus'];
 
-    if (canConstructDateWithMultipleComponents(currentEnd, currentYear)) {
-      return constructDateWithMultipleComponents(currentEnd, currentYear);
+    if (utils.canConstructDateWithMultipleComponents(currentEnd, currentYear)) {
+      return utils.constructDateWithMultipleComponents(currentEnd, currentYear);
     }
 
     const date = new Date(currentEnd);
@@ -84,3 +84,5 @@ class XbrlDataBuilder {
     );
   }
 }
+
+module.exports = XbrlDataBuilder;
