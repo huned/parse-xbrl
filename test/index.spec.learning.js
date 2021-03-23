@@ -1,7 +1,7 @@
-const ParseXbrl = require('../index.js');
-const fs = require('fs');
-const path = require('path');
-const xmlParser = require('xml2json');
+import { parse, loadField } from '../index.js';
+import { promises as fs, readFileSync } from 'fs';
+import { dirname, sep } from 'path';
+import { toJson } from 'xml2json';
 
 const { tsla10K2020Parsed, aapl10K2020Parsed } = loadData();
 
@@ -18,11 +18,11 @@ describe('parse-xbrl', function () {
 
     for (const doc of documents) {
       try {
-        const filing = await ParseXbrl.parse(doc);
+        const filing = await parse(doc);
         const [, , , , year, company] = doc.split('/');
         console.log({ year, company });
-        await fs.promises.writeFile(
-          path.dirname(doc) + path.sep + company + '_' + year + '.json',
+        await fs.writeFile(
+          dirname(doc) + sep + company + '_' + year + '.json',
           JSON.stringify(filing, null, 2)
         );
       } catch (ex) {
@@ -33,7 +33,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for AAPL 10k 2020', async function (done) {
-    const apple10kOutput = await ParseXbrl.parse(
+    const apple10kOutput = await parse(
       './test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml'
     );
     for (var key in apple10kOutput) {
@@ -45,7 +45,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for TSLA 10k 2020', function (done) {
-    const tsla10kOutput = ParseXbrl.parse(
+    const tsla10kOutput = parse(
       './test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml'
     );
     tsla10kOutput.then(r => {
@@ -59,9 +59,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse new documents', function (done) {
-    var newmsft = ParseXbrl.parse(
-      './test/sampleXbrlDocuments/new_documents/xml_0.xml'
-    );
+    var newmsft = parse('./test/sampleXbrlDocuments/new_documents/xml_0.xml');
 
     newmsft.then(resolve => {
       expect(resolve['EntityRegistrantName']).toBe('MICROSOFT CORPORATION');
@@ -71,17 +69,17 @@ describe('parse-xbrl', function () {
   });
 
   it('can load EntityRegistrantName', function (done) {
-    const oldData = fs.readFileSync(
+    const oldData = readFileSync(
       './test/sampleXbrlDocuments/ruby_tuesday_10q.xml',
       'utf8'
     );
-    const newData = fs.readFileSync(
+    const newData = readFileSync(
       './test/sampleXbrlDocuments/new_documents/xml_0.xml',
       'utf8'
     );
 
-    const oldJsonObj = JSON.parse(xmlParser.toJson(oldData));
-    const newJsonObj = JSON.parse(xmlParser.toJson(newData));
+    const oldJsonObj = JSON.parse(toJson(oldData));
+    const newJsonObj = JSON.parse(toJson(newData));
 
     const newO = {};
     const oldO = {};
@@ -92,8 +90,8 @@ describe('parse-xbrl', function () {
     oldO.fields = {};
     newO.fields = {};
 
-    newO.loadField = ParseXbrl.loadField.bind(newO);
-    oldO.loadField = ParseXbrl.loadField.bind(oldO);
+    newO.loadField = loadField.bind(newO);
+    oldO.loadField = loadField.bind(oldO);
 
     oldO.loadField('EntityRegistrantName');
     newO.loadField('EntityRegistrantName');

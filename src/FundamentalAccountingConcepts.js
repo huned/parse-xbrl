@@ -1,4 +1,4 @@
-function load(xbrl) {
+export function loadFundamentalAccountingConcepts(xbrl) {
   // Assets
   xbrl.fields['Assets'] = xbrl.getFactValue('us-gaap:Assets', 'Instant') || 0;
 
@@ -992,7 +992,3 @@ function load(xbrl) {
 
   xbrl.fields['ROS'] = xbrl.fields['NetIncomeLoss'] / xbrl.fields['Revenues'];
 }
-
-module.exports = {
-  load
-};

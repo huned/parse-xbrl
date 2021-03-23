@@ -1,5 +1,9 @@
 'use strict';
-const XBRL = require('./src/XBRL');
+import { XbrlParser } from './src/XbrlParser.js';
 
-exports.parse = async filePath => await new XBRL().parseFile(filePath);
-exports.parseStr = async str => await new XBRL().parseStr(str);
+export async function parse(filePath) {
+  return await new XbrlParser().parseFile(filePath);
+}
+export async function parseStr(str) {
+  return await new XbrlParser().parseStr(str);
+}

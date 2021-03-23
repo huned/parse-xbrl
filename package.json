@@ -6,6 +6,7 @@
     "lodash": "^4.5.1",
     "xml2json": "^0.9.0"
   },
+  "type": "module",
   "main": "index.js",
   "files": [
     "FundamentalAccountingConcepts.js",

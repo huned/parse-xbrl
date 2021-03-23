@@ -1,11 +1,20 @@
-const fs = require('fs').promises;
-const _ = require('lodash');
-const xmlParser = require('xml2json');
-const FundamentalAccountingConcepts = require('./FundamentalAccountingConcepts.js');
-const utils = require('./utils');
+import { promises as fs } from 'fs';
+import _ from 'lodash';
+import { toJson } from 'xml2json';
+import { loadFundamentalAccountingConcepts } from './FundamentalAccountingConcepts.js';
+import {
+  canConstructDateWithMultipleComponents,
+  constructDateWithMultipleComponents,
+  getPropertyFrom,
+  getVariable,
+  searchVariable,
+  search,
+  isSameDate,
+  formatNumber
+} from './utils.js';
 
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
-class XBRL {
+export class XbrlParser {
   constructor() {
     this.document = '';
     this.fields = {};
@@ -16,7 +25,7 @@ class XBRL {
   }
 
   async parseStr(string) {
-    const data = JSON.parse(xmlParser.toJson(string));
+    const data = JSON.parse(toJson(string));
     this.document = data[Object.keys(data)[0]];
     this.loadField('EntityRegistrantName');
     this.loadField('CurrentFiscalYearEndDate');
@@ -55,7 +64,7 @@ class XBRL {
     this.fields['BalanceSheetDate'] = currentYearEnd;
 
     // Load the rest of the facts
-    FundamentalAccountingConcepts.load(this);
+    loadFundamentalAccountingConcepts(this);
 
     return this.fields;
   }
@@ -64,8 +73,8 @@ class XBRL {
     const currentEnd = this.fields['DocumentPeriodEndDate'];
     const currentYear = this.fields['DocumentFiscalYearFocus'];
 
-    if (utils.canConstructDateWithMultipleComponents(currentEnd, currentYear)) {
-      return utils.constructDateWithMultipleComponents(currentEnd, currentYear);
+    if (canConstructDateWithMultipleComponents(currentEnd, currentYear)) {
+      return constructDateWithMultipleComponents(currentEnd, currentYear);
     }
 
     if (!/Invalid date/.test(new Date(currentEnd))) return currentEnd;
@@ -74,17 +83,17 @@ class XBRL {
   }
 
   loadField(concept, fieldName = concept, key = '$t') {
-    this.fields[fieldName] = utils.getPropertyFrom(this.document, concept, key);
+    this.fields[fieldName] = getPropertyFrom(this.document, concept, key);
   }
 
   getContext(object) {
     const paths = ['xbrli:context', 'context'];
-    return utils.getVariable(object, paths);
+    return getVariable(object, paths);
   }
 
   searchContext(object) {
     const paths = ['xbrli:context', 'context'];
-    return utils.searchVariable(object, paths);
+    return searchVariable(object, paths);
   }
 
   getEndDate(object) {
@@ -92,7 +101,7 @@ class XBRL {
       ['xbrli:period', 'xbrli:endDate'],
       ['period', 'endDate']
     ];
-    return utils.getVariable(object, paths);
+    return getVariable(object, paths);
   }
 
   hasExplicitMember(object) {
@@ -100,7 +109,7 @@ class XBRL {
       ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
       ['entity', 'segment', 'explicitMember']
     ];
-    return utils.getVariable(object, paths);
+    return getVariable(object, paths);
   }
 
   getStartDate(object) {
@@ -108,14 +117,14 @@ class XBRL {
       ['xbrli:period', 'xbrli:startDate'],
       ['period', 'startDate']
     ];
-    return utils.getVariable(object, paths);
+    return getVariable(object, paths);
   }
 
   getNodeList(names) {
     const allNodes = [];
 
     for (const name of names) {
-      allNodes.push(...utils.search(this.document, name));
+      allNodes.push(...search(this.document, name));
     }
 
     return allNodes.flat().filter(n => typeof n !== 'undefined');
@@ -139,7 +148,7 @@ class XBRL {
         .filter(
           context =>
             context.id === node.contextRef &&
-            utils.isSameDate(this.getEndDate(context), endDate, MS_IN_A_DAY) &&
+            isSameDate(this.getEndDate(context), endDate, MS_IN_A_DAY) &&
             !this.hasExplicitMember(context)
         )
         .forEach(context => {
@@ -174,11 +183,7 @@ class XBRL {
         .filter(
           context =>
             context.id === node.contextRef &&
-            utils.isSameDate(
-              this.getContextInstant(context),
-              endDate,
-              MS_IN_A_DAY
-            ) &&
+            isSameDate(this.getContextInstant(context), endDate, MS_IN_A_DAY) &&
             !this.hasExplicitMember(context)
         )
         .forEach(context => {
@@ -197,7 +202,7 @@ class XBRL {
       ['xbrli:period', 'xbrli:instant'],
       ['period', 'instant']
     ];
-    return utils.getVariable(object, paths);
+    return getVariable(object, paths);
   }
 
   lookForAlternativeInstantsContext() {
@@ -208,15 +213,11 @@ class XBRL {
         'xbrli:period',
         'xbrli:instant'
       ]) || _.get(this.document, ['context', 'period', 'instant']),
-      function (node) {
-        if (node === this.fields['BalanceSheetDate']) {
-          return true;
-        }
-      }
+      node => node === this.fields['BalanceSheetDate']
     );
 
-    for (let h = 0; h < altNodesArr.length; h++) {
-      _.forEach(_.get(this.document, ['us-gaap:Assets']), function (node) {
+    for (let h = 0; h < altNodesArr.length; h += 1) {
+      _.get(this.document, ['us-gaap:Assets']).forEach(node => {
         if (node.contextRef === altNodesArr[h].id) {
           altContextId = altNodesArr[h].id;
         }
@@ -238,7 +239,7 @@ class XBRL {
       console.warn('CONTEXT ERROR');
     }
 
-    _.forEach(utils.search(this.document, concept), function (node) {
+    search(this.document, concept).forEach(node => {
       if (node.contextRef === contextReference) {
         factNode = node;
       }
@@ -252,7 +253,7 @@ class XBRL {
     }
 
     if (typeof factValue === 'string') {
-      factValue = parseFloat(utils.formatNumber(factNode.format, factValue));
+      factValue = parseFloat(formatNumber(factNode.format, factValue));
     }
 
     const scale = parseInt(factNode.scale) || 0;
@@ -260,4 +261,4 @@ class XBRL {
   }
 }
 
-module.exports = XBRL;
+export default XbrlParser;

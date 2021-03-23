@@ -1,6 +1,6 @@
-const _ = require('lodash');
+import _ from 'lodash';
 
-function search(object, target) {
+export function search(object, target) {
   const result = [];
 
   Object.keys(object).forEach(key => {
@@ -20,12 +20,12 @@ function search(object, target) {
   return result.flat();
 }
 
-function getPropertyFrom(object, conceptToFind, key = '$t') {
+export function getPropertyFrom(object, conceptToFind, key = '$t') {
   const concept = search(object, 'dei:' + conceptToFind).shift();
   return _.get(concept, key, 'Field not found');
 }
 
-function constructDateWithMultipleComponents(monthDay, year) {
+export function constructDateWithMultipleComponents(monthDay, year) {
   try {
     return new Date(monthDay + year).toISOString();
   } catch (err) {
@@ -35,7 +35,7 @@ function constructDateWithMultipleComponents(monthDay, year) {
   }
 }
 
-function canConstructDateWithMultipleComponents(monthDay, year) {
+export function canConstructDateWithMultipleComponents(monthDay, year) {
   try {
     constructDateWithMultipleComponents(monthDay, year);
     return true;
@@ -44,7 +44,7 @@ function canConstructDateWithMultipleComponents(monthDay, year) {
   }
 }
 
-function getNodeList(nodeNamesArr, root) {
+export function getNodeList(nodeNamesArr, root) {
   root = root || this.documentJson;
   let allNodes = [];
 
@@ -54,33 +54,29 @@ function getNodeList(nodeNamesArr, root) {
   allNodes = allNodes.flat();
 
   // Remove undefined nodes
-  return _.filter(allNodes, function (node) {
-    if (node) {
-      return true;
-    }
-  });
+  return allNodes.filter(node => typeof node);
 }
 
-function isSameDate(a, b, epsilon = 0) {
+export function isSameDate(a, b, epsilon = 0) {
   return Math.abs(new Date(a) - new Date(b)) <= epsilon;
 }
 
-function getVariable(object, paths, defaultValue) {
+export function getVariable(object, paths, defaultValue) {
   return findVariable(object, paths, _.get);
 }
 
-function searchVariable(object, paths) {
+export function searchVariable(object, paths) {
   return findVariable(object, paths, search);
 }
 
-function findVariable(object, paths, cb) {
+export function findVariable(object, paths, cb) {
   for (let path of paths) {
     if (cb(object, path)) return cb(object, path);
   }
   return null;
 }
 
-function formatNumber(format, number) {
+export function formatNumber(format, number) {
   if (!format) return number;
 
   if (format === 'ixt:numdotdecimal') {
@@ -91,15 +87,3 @@ function formatNumber(format, number) {
     throw new Error(`Unknown format: ${format}`);
   }
 }
-
-module.exports = {
-  search,
-  getPropertyFrom,
-  constructDateWithMultipleComponents,
-  canConstructDateWithMultipleComponents,
-  getNodeList,
-  isSameDate,
-  getVariable,
-  searchVariable,
-  formatNumber
-};

@@ -1,5 +1,5 @@
-const ParseXbrl = require('../index.js');
-const { expect } = require('chai');
+import { parse } from '../index.js';
+import { expect } from 'chai';
 const {
   wlRossHolingCorp10kParsed,
   amazon10kParsed,
@@ -13,9 +13,7 @@ const {
 
 describe('parse-xbrl', function () {
   it('should parse the xbrl for Amazon 10k', async () => {
-    const result = await ParseXbrl.parse(
-      './test/sampleXbrlDocuments/amazon_10k.xml'
-    );
+    const result = await parse('./test/sampleXbrlDocuments/amazon_10k.xml');
 
     for (const field in result) {
       if (amazon10kParsed[field]) {
@@ -28,7 +26,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for Cannabics Pharmaceuticals Inc. 10k', async () => {
-    var result = await ParseXbrl.parse(
+    var result = await parse(
       './test/sampleXbrlDocuments/cannabics_pharmaceuticals_inc_10k.xml'
     );
 
@@ -40,9 +38,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for Costco Inc. 10k', async () => {
-    const result = await ParseXbrl.parse(
-      './test/sampleXbrlDocuments/costco_inc_10k.xml'
-    );
+    const result = await parse('./test/sampleXbrlDocuments/costco_inc_10k.xml');
 
     for (const field in result) {
       if (costco10kParsed[field]) {
@@ -52,7 +48,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for Transatlantic Capital Inc. 10k', async () => {
-    const result = await ParseXbrl.parse(
+    const result = await parse(
       './test/sampleXbrlDocuments/transatlantic_capital_inc_10k.xml'
     );
 
@@ -64,7 +60,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for WL Ross Holding Corp 10k', async () => {
-    const result = await ParseXbrl.parse(
+    const result = await parse(
       './test/sampleXbrlDocuments/wl_ross_holding_corp_10k.xml'
     );
 
@@ -76,7 +72,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for Sweets and Treats 10q', async () => {
-    const result = await ParseXbrl.parse(
+    const result = await parse(
       './test/sampleXbrlDocuments/sweets_and_treats_10q.xml'
     );
 
@@ -88,7 +84,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for Ruby Tuesday 10q', async () => {
-    const result = await ParseXbrl.parse(
+    const result = await parse(
       './test/sampleXbrlDocuments/ruby_tuesday_10q.xml'
     );
 
@@ -100,9 +96,7 @@ describe('parse-xbrl', function () {
   });
 
   it('should parse the xbrl for Google/Alphabet 10k', async () => {
-    const result = await ParseXbrl.parse(
-      './test/sampleXbrlDocuments/google_10k.xml'
-    );
+    const result = await parse('./test/sampleXbrlDocuments/google_10k.xml');
 
     for (const field in result) {
       if (google10kParsed[field]) {
