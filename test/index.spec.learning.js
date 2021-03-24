@@ -1,4 +1,4 @@
-import { parse, loadField } from '../index.js';
+import { parse } from '../index.js';
 import { promises as fs, readFileSync } from 'fs';
 import { dirname, sep } from 'path';
 import { toJson } from 'xml2json';
