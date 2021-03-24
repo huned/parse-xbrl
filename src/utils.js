@@ -83,7 +83,6 @@ export function formatNumber(format, number) {
     return number.replace(/,/g, '');
   } else if (format === 'ixt:numcommadecimal') {
     return number.replace(/\./g, '').replace(/,/g, '.');
-  } else {
-    throw new Error(`Unknown format: ${format}`);
   }
+  throw new Error(`Unknown format: ${format}`);
 }

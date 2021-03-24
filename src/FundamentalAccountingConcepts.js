@@ -987,8 +987,6 @@ export function loadFundamentalAccountingConcepts(xbrl) {
               xbrl.fields['Equity'])) || null;
 
   xbrl.fields['ROA'] = xbrl.fields['NetIncomeLoss'] / xbrl.fields['Assets'];
-
   xbrl.fields['ROE'] = xbrl.fields['NetIncomeLoss'] / xbrl.fields['Equity'];
-
   xbrl.fields['ROS'] = xbrl.fields['NetIncomeLoss'] / xbrl.fields['Revenues'];
 }
