@@ -71,7 +71,8 @@ export function searchVariable(object, paths) {
 
 export function findVariable(object, paths, cb) {
   for (let path of paths) {
-    if (cb(object, path)) return cb(object, path);
+    const result = cb(object, path);
+    if (result) return result;
   }
   return null;
 }

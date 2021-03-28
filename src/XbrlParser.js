@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import _ from 'lodash';
 import { toJson } from 'xml2json';
 import { loadFundamentalAccountingConcepts } from './FundamentalAccountingConcepts.js';
+import { Context } from './Context.js';
 import {
   canConstructDateWithMultipleComponents,
   constructDateWithMultipleComponents,
@@ -9,11 +10,9 @@ import {
   getVariable,
   searchVariable,
   search,
-  isSameDate,
   formatNumber
 } from './utils.js';
 
-const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 export class XbrlParser {
   constructor() {
     this.document = '';
@@ -35,16 +34,8 @@ export class XbrlParser {
     this.loadField('DocumentPeriodEndDate');
     this.loadField('DocumentFiscalYearFocus');
     this.loadField('DocumentFiscalPeriodFocus');
-    this.loadField(
-      'DocumentFiscalYearFocus',
-      'DocumentFiscalYearFocusContext',
-      'contextRef'
-    );
-    this.loadField(
-      'DocumentFiscalPeriodFocus',
-      'DocumentFiscalPeriodFocusContext',
-      'contextRef'
-    );
+    this.loadField('DocumentFiscalYearFocus', 'DocumentFiscalYearFocusContext', 'contextRef');
+    this.loadField('DocumentFiscalPeriodFocus', 'DocumentFiscalPeriodFocusContext', 'contextRef');
     this.loadField('DocumentType');
 
     const currentYearEnd = this.getYear();
@@ -52,12 +43,9 @@ export class XbrlParser {
 
     const durations = this.getContextForDurations(currentYearEnd);
 
-    this.fields['IncomeStatementPeriodYTD'] =
-      durations.incomeStatementPeriodYTD;
+    this.fields['IncomeStatementPeriodYTD'] = durations.incomeStatementPeriodYTD;
 
-    this.fields['ContextForInstants'] = this.getContextForInstants(
-      currentYearEnd
-    );
+    this.fields['ContextForInstants'] = this.getContextForInstants(currentYearEnd);
 
     this.fields['ContextForDurations'] = durations.contextForDurations;
 
@@ -77,7 +65,8 @@ export class XbrlParser {
       return constructDateWithMultipleComponents(currentEnd, currentYear);
     }
 
-    if (!/Invalid date/.test(new Date(currentEnd))) return currentEnd;
+    const endDate = new Date(currentEnd);
+    if (!/Invalid date/.test(endDate)) return endDate;
 
     throw new Error(`${currentEnd} is not a date!`);
   }
@@ -86,38 +75,20 @@ export class XbrlParser {
     this.fields[fieldName] = getPropertyFrom(this.document, concept, key);
   }
 
-  getContext(object) {
-    const paths = ['xbrli:context', 'context'];
-    return getVariable(object, paths);
+  getContexts() {
+    const [obj, paths] = [this.document, ['xbrli:context', 'context']];
+    const result = getVariable(obj, paths) ?? searchVariable(obj, paths);
+    if (result) return result.map(c => new Context(c));
+
+    throw new Error('No contexts found!');
   }
 
-  searchContext(object) {
-    const paths = ['xbrli:context', 'context'];
-    return searchVariable(object, paths);
+  getDurationContexts() {
+    return this.getContexts().filter(c => c.isDuration());
   }
 
-  getEndDate(object) {
-    const paths = [
-      ['xbrli:period', 'xbrli:endDate'],
-      ['period', 'endDate']
-    ];
-    return getVariable(object, paths);
-  }
-
-  hasExplicitMember(object) {
-    const paths = [
-      ['xbrli:entity', 'xbrli:segment', 'xbrldi:explicitMember'],
-      ['entity', 'segment', 'explicitMember']
-    ];
-    return getVariable(object, paths);
-  }
-
-  getStartDate(object) {
-    const paths = [
-      ['xbrli:period', 'xbrli:startDate'],
-      ['period', 'startDate']
-    ];
-    return getVariable(object, paths);
+  getInstantContexts() {
+    return this.getContexts().filter(c => c.isInstant());
   }
 
   getNodeList(names) {
@@ -133,8 +104,7 @@ export class XbrlParser {
   getContextForDurations(endDate) {
     let contextForDurations = null;
     let startDateYTD = '2099-01-01';
-    const contexts =
-      this.getContext(this.document) ?? this.searchContext(this.document);
+    const contexts = this.getDurationContexts();
 
     const nodes = this.getNodeList([
       'us-gaap:CashAndCashEquivalentsPeriodIncreaseDecrease',
@@ -145,16 +115,10 @@ export class XbrlParser {
 
     for (const node of nodes) {
       contexts
-        .filter(
-          context =>
-            context.id === node.contextRef &&
-            isSameDate(this.getEndDate(context), endDate, MS_IN_A_DAY) &&
-            !this.hasExplicitMember(context)
-        )
+        .filter(context => context.represents(node, endDate))
         .forEach(context => {
-          const startDate = this.getStartDate(context);
-          if (new Date(startDate) <= new Date(startDateYTD)) {
-            startDateYTD = startDate;
+          if (context.startsBefore(startDateYTD)) {
+            startDateYTD = context.getStartDate();
             contextForDurations = context.id;
           }
         });
@@ -168,8 +132,7 @@ export class XbrlParser {
 
   getContextForInstants(endDate) {
     let contextForInstants = null;
-    const contexts =
-      this.getContext(this.document) ?? this.searchContext(this.document);
+    const contexts = this.getInstantContexts();
 
     // Uses the concept ASSETS to find the correct instant context
     const nodes = this.getNodeList([
@@ -179,40 +142,19 @@ export class XbrlParser {
     ]);
 
     for (const node of nodes) {
-      contexts
-        .filter(
-          context =>
-            context.id === node.contextRef &&
-            isSameDate(this.getContextInstant(context), endDate, MS_IN_A_DAY) &&
-            !this.hasExplicitMember(context)
-        )
-        .forEach(context => {
-          contextForInstants = context.id;
-        });
+      const context = contexts.filter(context => context.represents(node, endDate)).pop();
+      if (context) contextForInstants = context.id;
     }
 
-    if (contextForInstants !== null) {
-      return contextForInstants;
-    }
+    if (contextForInstants !== null) return contextForInstants;
     return this.lookForAlternativeInstantsContext();
-  }
-
-  getContextInstant(object) {
-    const paths = [
-      ['xbrli:period', 'xbrli:instant'],
-      ['period', 'instant']
-    ];
-    return getVariable(object, paths);
   }
 
   lookForAlternativeInstantsContext() {
     let altContextId = null;
     let altNodesArr = _.filter(
-      _.get(this.document, [
-        'xbrli:context',
-        'xbrli:period',
-        'xbrli:instant'
-      ]) || _.get(this.document, ['context', 'period', 'instant']),
+      _.get(this.document, ['xbrli:context', 'xbrli:period', 'xbrli:instant']) ||
+        _.get(this.document, ['context', 'period', 'instant']),
       node => node === this.fields['BalanceSheetDate']
     );
 
@@ -226,32 +168,26 @@ export class XbrlParser {
     return altContextId;
   }
 
-  getFactValue(concept, periodType) {
-    let contextReference;
-    let factNode;
-    let factValue;
+  getInstantFactValue(concept) {
+    return this.getFactValue(concept, this.fields['ContextForInstants']);
+  }
 
-    if (periodType === 'Instant') {
-      contextReference = this.fields['ContextForInstants'];
-    } else if (periodType === 'Duration') {
-      contextReference = this.fields['ContextForDurations'];
-    } else {
-      console.warn('CONTEXT ERROR');
-    }
+  getDurationFactValue(concept) {
+    return this.getFactValue(concept, this.fields['ContextForDurations']);
+  }
 
-    search(this.document, concept).forEach(node => {
-      if (node.contextRef === contextReference) {
-        factNode = node;
-      }
-    });
+  getFactValue(concept, contextReference) {
+    const factNode = search(this.document, concept)
+      .filter(node => node.contextRef === contextReference)
+      .pop();
 
     if (!factNode) return null;
 
-    factValue = factNode['$t'];
     if (Object.keys(factNode).some(k => k.includes('nil'))) {
-      factValue = 0;
+      return 0;
     }
 
+    let factValue = factNode['$t'];
     if (typeof factValue === 'string') {
       factValue = parseFloat(formatNumber(factNode.format, factValue));
     }

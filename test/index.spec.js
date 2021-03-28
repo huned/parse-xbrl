@@ -17,7 +17,7 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (amazon10kParsed[field]) {
-        expect(result[field]).to.equal(
+        expect(result[field]).to.deep.equal(
           amazon10kParsed[field],
           `At field ${field}`
         );
@@ -32,7 +32,7 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (cannabicsPharma10kParsed[field]) {
-        expect(result[field]).to.equal(cannabicsPharma10kParsed[field]);
+        expect(result[field]).to.deep.equal(cannabicsPharma10kParsed[field]);
       }
     }
   });
@@ -42,7 +42,7 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (costco10kParsed[field]) {
-        expect(result[field]).to.equal(costco10kParsed[field]);
+        expect(result[field]).to.deep.equal(costco10kParsed[field]);
       }
     }
   });
@@ -54,7 +54,9 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (transatlanticCapital10kParsed[field]) {
-        expect(result[field]).to.equal(transatlanticCapital10kParsed[field]);
+        expect(result[field]).to.deep.equal(
+          transatlanticCapital10kParsed[field]
+        );
       }
     }
   });
@@ -66,7 +68,7 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (wlRossHolingCorp10kParsed[field]) {
-        expect(result[field]).to.equal(wlRossHolingCorp10kParsed[field]);
+        expect(result[field]).to.deep.equal(wlRossHolingCorp10kParsed[field]);
       }
     }
   });
@@ -78,7 +80,7 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (sweetsAndTreats10qParsed[field]) {
-        expect(result[field]).to.equal(sweetsAndTreats10qParsed[field]);
+        expect(result[field]).to.deep.equal(sweetsAndTreats10qParsed[field]);
       }
     }
   });
@@ -90,7 +92,7 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (rubyTuesday10qParsed[field]) {
-        expect(result[field]).to.equal(rubyTuesday10qParsed[field]);
+        expect(result[field]).to.deep.equal(rubyTuesday10qParsed[field]);
       }
     }
   });
@@ -100,7 +102,7 @@ describe('parse-xbrl', function () {
 
     for (const field in result) {
       if (google10kParsed[field]) {
-        expect(result[field]).to.equal(google10kParsed[field]);
+        expect(result[field]).to.deep.equal(google10kParsed[field]);
       }
     }
   });
@@ -179,6 +181,7 @@ function loadData() {
     RepaymentofDebt: -2033000,
     FreeCashFlow: 398000
   };
+
   const aapl10K2020Parsed = {
     TotalRevenue: 59685000,
     OperatingRevenue: 59685000,
@@ -297,7 +300,7 @@ function loadData() {
     Revenues: 0.0,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 0,
-    IncomeStatementPeriodYTD: '2015-01-01',
+    IncomeStatementPeriodYTD: new Date('2015-01-01'),
     Liabilities: 19074899,
     NetCashFlowsFinancingContinuing: 300000,
     EntityCentralIndexKey: '0001604416',
@@ -307,7 +310,7 @@ function loadData() {
     NetIncomeLoss: 332612,
     IncomeBeforeEquityMethodInvestments: 332612,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2015-12-31',
+    BalanceSheetDate: new Date('2015-12-31'),
     NetCashFlowsFinancing: 300000,
     ROA: 0.0006642854297876821,
     ExtraordaryItemsGainLoss: 0,
@@ -368,7 +371,7 @@ function loadData() {
     Revenues: 107006000000,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 33122000000,
-    IncomeStatementPeriodYTD: '2015-01-01',
+    IncomeStatementPeriodYTD: new Date('2015-01-01'),
     Liabilities: 52060000000,
     NetCashFlowsFinancingContinuing: -3763000000,
     EntityCentralIndexKey: '0001018724',
@@ -378,7 +381,7 @@ function loadData() {
     NetIncomeLoss: 596000000,
     IncomeBeforeEquityMethodInvestments: 1568000000,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2015-12-31',
+    BalanceSheetDate: new Date('2015-12-31'),
     NetCashFlowsFinancing: -3763000000,
     ROA: 0.009107022798117474,
     ExtraordaryItemsGainLoss: 0,
@@ -437,7 +440,7 @@ function loadData() {
     Revenues: 0,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 0,
-    IncomeStatementPeriodYTD: '2004-09-15',
+    IncomeStatementPeriodYTD: new Date('2004-09-15'),
     Liabilities: 338330,
     NetCashFlowsFinancingContinuing: 0,
     EntityCentralIndexKey: '0001343009',
@@ -447,7 +450,7 @@ function loadData() {
     NetIncomeLoss: -1279138,
     IncomeBeforeEquityMethodInvestments: -1279138,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2015-08-31',
+    BalanceSheetDate: new Date('2015-08-31'),
     NetCashFlowsFinancing: 0,
     ROA: -44.563057413600895,
     ExtraordaryItemsGainLoss: 0,
@@ -506,7 +509,7 @@ function loadData() {
     Revenues: 0,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 23719,
-    IncomeStatementPeriodYTD: '2014-12-01',
+    IncomeStatementPeriodYTD: new Date('2014-12-01'),
     Liabilities: 3477,
     NetCashFlowsFinancingContinuing: 30000,
     EntityCentralIndexKey: '0001621199',
@@ -516,7 +519,7 @@ function loadData() {
     NetIncomeLoss: -23719,
     IncomeBeforeEquityMethodInvestments: -23719,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2015-11-30',
+    BalanceSheetDate: new Date('2015-11-30'),
     NetCashFlowsFinancing: 30000,
     ROA: -1.7388021406055274,
     ExtraordaryItemsGainLoss: 0,
@@ -575,7 +578,7 @@ function loadData() {
     Revenues: 0,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 179759,
-    IncomeStatementPeriodYTD: '2014-01-01',
+    IncomeStatementPeriodYTD: new Date('2014-01-01'),
     Liabilities: 144968,
     NetCashFlowsFinancingContinuing: 69155,
     EntityCentralIndexKey: '0001228386',
@@ -585,7 +588,7 @@ function loadData() {
     NetIncomeLoss: -312535,
     IncomeBeforeEquityMethodInvestments: -312535,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2014-12-31',
+    BalanceSheetDate: new Date('2014-12-31'),
     NetCashFlowsFinancing: 69155,
     ExtraordaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: -312535,
@@ -645,7 +648,7 @@ function loadData() {
     Revenues: 153,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 2119,
-    IncomeStatementPeriodYTD: '2015-08-01',
+    IncomeStatementPeriodYTD: new Date('2015-08-01'),
     Liabilities: 40315,
     NetCashFlowsFinancingContinuing: 18659,
     EntityCentralIndexKey: '0001624982',
@@ -655,7 +658,7 @@ function loadData() {
     NetIncomeLoss: -2065,
     IncomeBeforeEquityMethodInvestments: -2065,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2015-10-31',
+    BalanceSheetDate: new Date('2015-10-31'),
     NetCashFlowsFinancing: 18659,
     ROA: -0.3556665518429211,
     ExtraordaryItemsGainLoss: 0,
@@ -716,7 +719,7 @@ function loadData() {
     Revenues: 540436000,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 0,
-    IncomeStatementPeriodYTD: '2015-06-03',
+    IncomeStatementPeriodYTD: new Date('2015-06-03'),
     Liabilities: 437296000,
     NetCashFlowsFinancingContinuing: -9639000,
     EntityCentralIndexKey: '0000068270',
@@ -726,7 +729,7 @@ function loadData() {
     NetIncomeLoss: -19993000,
     IncomeBeforeEquityMethodInvestments: -21196000,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2015-12-01',
+    BalanceSheetDate: new Date('2015-12-01'),
     NetCashFlowsFinancing: -9639000,
     ROA: -0.02261349729334772,
     ExtraordaryItemsGainLoss: 0,
@@ -787,7 +790,7 @@ function loadData() {
     Revenues: 74989000000,
     CommitmentsAndContingencies: 0,
     OperatingExpenses: 0,
-    IncomeStatementPeriodYTD: '2015-01-01',
+    IncomeStatementPeriodYTD: new Date('2015-01-01'),
     Liabilities: 27130000000,
     NetCashFlowsFinancingContinuing: -3677000000,
     EntityCentralIndexKey: '0001652044',
@@ -797,7 +800,7 @@ function loadData() {
     NetIncomeLoss: 16348000000,
     IncomeBeforeEquityMethodInvestments: 19651000000,
     NetCashFlowsOperatingDiscontinued: 0,
-    BalanceSheetDate: '2015-12-31',
+    BalanceSheetDate: new Date('2015-12-31'),
     NetCashFlowsFinancing: -3677000000,
     ROA: 0.11086321128976476,
     ExtraordaryItemsGainLoss: 0,
