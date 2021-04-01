@@ -34,9 +34,10 @@ export class Context {
       ['period', 'startDate']
     ];
     const startDate = getVariable(this.#context, paths);
-    if (startDate) return new Date(startDate);
+    if (startDate === null || startDate === undefined) throw new Error('No start date found!');
+    if (/Invalid date/.test(new Date(startDate))) throw new Error(`Invalid date: ${startDate}`);
 
-    throw new Error('No start date found!');
+    return startDate;
   }
 
   getEndDate() {
@@ -47,9 +48,10 @@ export class Context {
       ['period', 'endDate']
     ];
     const endDate = getVariable(this.#context, paths);
-    if (endDate) return new Date(endDate);
+    if (endDate === null || endDate === undefined) throw new Error('No end date found!');
+    if (/Invalid date/.test(new Date(endDate))) throw new Error(`Invalid date: ${endDate}`);
 
-    throw new Error('No end date found!');
+    return endDate;
   }
 
   getInstant() {
@@ -58,13 +60,14 @@ export class Context {
       ['period', 'instant']
     ];
     const instant = getVariable(this.#context, paths);
-    if (instant) return new Date(instant);
+    if (instant === null || instant === undefined) throw new Error('No instant found!');
+    if (/Invalid date/.test(new Date(instant))) throw new Error(`Invalid date: ${instant}`);
 
-    throw new Error('No instant found!');
+    return instant;
   }
 
   isSameDate(date, epsilon = 0) {
-    return Math.abs(this.getEndDate() - new Date(date)) <= epsilon;
+    return Math.abs(new Date(this.getEndDate()) - new Date(date)) <= epsilon; // ??
   }
 
   hasExplicitMember() {
@@ -81,14 +84,10 @@ export class Context {
   }
 
   represents(node, date) {
-    return (
-      this.id === node.contextRef &&
-      this.isSameDate(date, MS_IN_A_DAY) &&
-      !this.hasExplicitMember()
-    );
+    return this.id === node.contextRef && this.isSameDate(date, MS_IN_A_DAY) && !this.hasExplicitMember();
   }
 
   startsBefore(date) {
-    return this.getStartDate() <= new Date(date);
+    return new Date(this.getStartDate()) <= new Date(date);
   }
 }

@@ -66,7 +66,7 @@ export class XbrlParser {
     }
 
     const endDate = new Date(currentEnd);
-    if (!/Invalid date/.test(endDate)) return endDate;
+    if (!/Invalid date/.test(endDate)) return currentEnd;
 
     throw new Error(`${currentEnd} is not a date!`);
   }
