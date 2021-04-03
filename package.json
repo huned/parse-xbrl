@@ -13,6 +13,7 @@
     "index.js"
   ],
   "scripts": {
+    "prepare": "esbuild index.js --bundle --platform=node --target=node8 --outfile=dist/index.js",
     "test": "mocha",
     "test:watch": "mocha --watch",
     "pretty": "prettier --write './{src,test}/**/*.js'"
@@ -29,6 +30,7 @@
     "babel-eslint": "^10.1.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
+    "es6-module-transpiler": "^0.10.0",
     "eslint": "^7.20.0",
     "eslint-config-prettier": "^8.0.0",
     "eslint-config-standard": "^5.3.5",
