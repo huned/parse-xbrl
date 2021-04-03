@@ -6,8 +6,3 @@ export async function parse(filePath) {
 export async function parseStr(str) {
   return await new XbrlParser().parseStr(str);
 }
-
-export default {
-  parse,
-  parseStr
-};
