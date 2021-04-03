@@ -9,7 +9,7 @@
   "type": "module",
   "main": "index.js",
   "files": [
-    "FundamentalAccountingConcepts.js",
+    "src",
     "index.js"
   ],
   "scripts": {
