@@ -1,4 +1,4 @@
-import { XbrlParser } from './src/XbrlParser.js';
+import { XbrlParser } from './classes/XbrlParser.js';
 
 export async function parse(filePath) {
   return await new XbrlParser().parseFile(filePath);

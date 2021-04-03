@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { parse } from '../index.js';
+import { parse } from '../src/index.js';
 const {
   wlRossHolingCorp10kParsed,
   amazon10kParsed,
