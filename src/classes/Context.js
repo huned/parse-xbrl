@@ -67,7 +67,7 @@ export class Context {
   }
 
   isSameDate(date, epsilon = 0) {
-    return Math.abs(new Date(this.getEndDate()) - new Date(date)) <= epsilon; // ??
+    return Math.abs(new Date(this.getEndDate()) - new Date(date)) <= epsilon;
   }
 
   hasExplicitMember() {

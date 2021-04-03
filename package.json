@@ -2,34 +2,44 @@
   "name": "parse-xbrl",
   "description": "Module to parse xbrl documents and output json.",
   "version": "1.1.4",
-  "dependencies": {
-    "lodash": "^4.17.21",
-    "xml2json": "^0.9.0"
-  },
   "type": "module",
-  "main": "src/index.js",
-  "files": [
-    "src"
-  ],
+  "main": "dist/index.js",
+  "typings": "index.d.ts",
   "scripts": {
+    "prepare": "babel src -d dist && echo '{\"type\":\"commonjs\"}' > dist/package.json",
+    "build": "npm run prepare",
     "test": "mocha",
     "test:watch": "mocha --watch",
     "pretty": "prettier --write './{src,test}/**/*.js'"
+  },
+  "files": [
+    "src",
+    "index.d.ts",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=12"
   },
   "publishConfig": {
     "registry": "http://registry.npmjs.org"
   },
   "author": "Emily Coco <emilymcoco@gmail.com>",
   "license": "MIT",
+  "dependencies": {
+    "@babel/runtime": "^7.13.10",
+    "lodash": "^4.17.21",
+    "xml2json": "^0.9.0"
+  },
   "devDependencies": {
+    "@babel/cli": "^7.13.14",
+    "@babel/core": "^7.13.14",
     "@babel/eslint-parser": "^7.12.17",
     "@babel/plugin-proposal-class-properties": "^7.12.13",
-    "@babel/preset-env": "^7.12.17",
+    "@babel/plugin-transform-runtime": "^7.13.10",
+    "@babel/preset-env": "^7.13.12",
     "babel-eslint": "^10.1.0",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
-    "es6-module-transpiler": "^0.10.0",
-    "esbuild": "^0.11.4",
     "eslint": "^7.20.0",
     "eslint-config-prettier": "^8.0.0",
     "eslint-config-standard": "^5.3.5",
