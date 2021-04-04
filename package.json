@@ -27,6 +27,17 @@
     "registry": "http://registry.npmjs.org"
   },
   "author": "Emily Coco <emilymcoco@gmail.com>",
+  "contributors": [
+    {
+      "name": "Alejandro Encalado",
+      "url": "https://github.com/FaradayDetu"
+    },
+    {
+      "name": "Ricard Mallafre",
+      "email": "r.mallafre.lopez@gmail.com",
+      "url": "https://github.com/nikensss"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
     "@babel/runtime": "^7.13.10",
