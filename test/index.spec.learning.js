@@ -1,7 +1,7 @@
 import { promises as fs, readFileSync } from 'fs';
 import { dirname, sep } from 'path';
 import { toJson } from 'xml2json';
-import { parse } from '../src/index.js';
+import { parse } from '../dist/index.js';
 
 const { tsla10K2020Parsed, aapl10K2020Parsed } = loadData();
 
