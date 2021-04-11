@@ -1,4 +1,4 @@
-import { getVariable } from './utils.js';
+import { getVariable } from '../utils/utils.js';
 const MS_IN_A_DAY = 24 * 60 * 60 * 1000;
 
 export class Context {

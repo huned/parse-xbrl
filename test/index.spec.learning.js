@@ -84,6 +84,7 @@ describe('learning-parse-xbrl', function () {
     expect(getPropertyFrom(d, 'hufflepuf', '123foo')).to.be.equal(13);
     expect(getPropertyFrom(d, 'naruto')).to.be.equal('Field not found');
   });
+
 });
 
 function loadData() {
