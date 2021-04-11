@@ -1,12 +1,14 @@
+import { expect } from 'chai';
 import { promises as fs, readFileSync } from 'fs';
 import { dirname, sep } from 'path';
 import { toJson } from 'xml2json';
 import { parse } from '../dist/index.js';
+import { getPropertyFrom } from '../src/classes/utils.js';
 
 const { tsla10K2020Parsed, aapl10K2020Parsed } = loadData();
 
-describe('parse-xbrl', function () {
-  it('Learning test', async function (done) {
+describe('learning-parse-xbrl', function () {
+  it('Learning test', async function () {
     const documents = [
       './test/sampleXbrlDocuments/xbrls/2019/aapl/xml_0.xml',
       './test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml',
@@ -20,103 +22,67 @@ describe('parse-xbrl', function () {
       try {
         const filing = await parse(doc);
         const [, , , , year, company] = doc.split('/');
-        console.log({ year, company });
+        //console.log({ year, company });
         await fs.writeFile(dirname(doc) + sep + company + '_' + year + '.json', JSON.stringify(filing, null, 2));
       } catch (ex) {
         console.error(ex);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for AAPL 10k 2020', async function (done) {
+  it('should parse the xbrl for AAPL 10k 2020', async function () {
     const apple10kOutput = await parse('./test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml');
     for (var key in apple10kOutput) {
       if (aapl10K2020Parsed[key]) {
-        expect(apple10kOutput[key]).toBe(aapl10K2020Parsed[key]);
+        expect(apple10kOutput[key]).to.be.equal(aapl10K2020Parsed[key]);
       }
     }
-    done();
   });
 
-  it('should parse the xbrl for TSLA 10k 2020', function (done) {
-    const tsla10kOutput = parse('./test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml');
-    tsla10kOutput.then(r => {
-      for (var key in r) {
-        if (tsla10K2020Parsed[key]) {
-          expect(r[key]).toBe(tsla10K2020Parsed[key]);
+  it('should parse the xbrl for TSLA 10k 2020', async function () {
+    const tsla10kOutput = await parse('./test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml');
+    for (var key in tsla10kOutput) {
+      if (tsla10K2020Parsed[key]) {
+        expect(tsla10kOutput[key]).to.be.equal(tsla10K2020Parsed[key]);
+      }
+    }
+  });
+
+  it('should parse new documents', async function () {
+    const { EntityRegistrantName } = await parse('./test/sampleXbrlDocuments/new_documents/xml_0.xml');
+
+    expect(EntityRegistrantName).to.be.equal('MICROSOFT CORPORATION');
+  });
+
+  it('should find the correct property', function () {
+    const d = {
+      'dei:one': {
+        $t: 0,
+        'dei:red': { $t: 1 },
+        green: { $t: 2 },
+        blue: { $t: 3 }
+      },
+      two: { pink: { $t: 4 }, brown: { $t: 5 }, orange: { $t: 6 } },
+      three: {
+        alpha: { up: { $t: 7 }, 'dei:down': { $t: 8 }, charm: { $t: 9 } },
+        beta: {
+          strange: { $t: 10 },
+          top: { $t: 11 },
+          bottom: {
+            gryffindor: { $t: 12 },
+            'dei:hufflepuf': { '123foo': 13 },
+            ravenclawn: { $t: 14 },
+            slytherin: { $t: 15 }
+          }
         }
       }
-      done();
-    });
-  });
+    };
 
-  it('should parse new documents', function (done) {
-    var newmsft = parse('./test/sampleXbrlDocuments/new_documents/xml_0.xml');
-
-    newmsft.then(resolve => {
-      expect(resolve['EntityRegistrantName']).toBe('MICROSOFT CORPORATION');
-
-      done();
-    });
-  });
-
-  it('can load EntityRegistrantName', function (done) {
-    const oldData = readFileSync('./test/sampleXbrlDocuments/ruby_tuesday_10q.xml', 'utf8');
-    const newData = readFileSync('./test/sampleXbrlDocuments/new_documents/xml_0.xml', 'utf8');
-
-    const oldJsonObj = JSON.parse(toJson(oldData));
-    const newJsonObj = JSON.parse(toJson(newData));
-
-    const newO = {};
-    const oldO = {};
-
-    oldO.documentJson = oldJsonObj[Object.keys(oldJsonObj)[0]];
-    newO.documentJson = newJsonObj[Object.keys(newJsonObj)[0]];
-
-    oldO.fields = {};
-    newO.fields = {};
-
-    newO.loadField = loadField.bind(newO);
-    oldO.loadField = loadField.bind(oldO);
-
-    oldO.loadField('EntityRegistrantName');
-    newO.loadField('EntityRegistrantName');
-
-    oldO.loadField('CurrentFiscalYearEndDate');
-    newO.loadField('CurrentFiscalYearEndDate');
-
-    oldO.loadField('EntityCentralIndexKey');
-    newO.loadField('EntityCentralIndexKey');
-
-    oldO.loadField('EntityFilerCategory');
-    newO.loadField('EntityFilerCategory');
-
-    oldO.loadField('TradingSymbol');
-    newO.loadField('TradingSymbol');
-
-    oldO.loadField('DocumentPeriodEndDate');
-    newO.loadField('DocumentPeriodEndDate');
-
-    oldO.loadField('DocumentFiscalYearFocus');
-    newO.loadField('DocumentFiscalYearFocus');
-
-    oldO.loadField('DocumentFiscalPeriodFocus');
-    newO.loadField('DocumentFiscalPeriodFocus');
-
-    oldO.loadField('DocumentFiscalYearFocus', 'DocumentFiscalYearFocusContext', 'contextRef');
-    newO.loadField('DocumentFiscalYearFocus', 'DocumentFiscalYearFocusContext', 'contextRef');
-
-    oldO.loadField('DocumentFiscalPeriodFocus', 'DocumentFiscalPeriodFocusContext', 'contextRef');
-    newO.loadField('DocumentFiscalPeriodFocus', 'DocumentFiscalPeriodFocusContext', 'contextRef');
-
-    for (let key in newO.fields) {
-      console.log(`\n ${key} differences:\n old: ${oldO.fields[key]}  \n new:${newO.fields[key]}`);
-    }
-
-    expect(newO.fields.EntityRegistrantName).toBe('MICROSOFT CORPORATION');
-    expect(/--\d\d-\d\d/.test(newO.fields.CurrentFiscalYearEndDate)).toBeTrue;
-    done();
+    expect(getPropertyFrom(d, 'one')).to.be.equal(0);
+    expect(getPropertyFrom(d, 'red')).to.be.equal(1);
+    expect(getPropertyFrom(d, 'down')).to.be.equal(8);
+    expect(getPropertyFrom(d, 'hufflepuf', '123foo')).to.be.equal(13);
+    expect(getPropertyFrom(d, 'naruto')).to.be.equal('Field not found');
   });
 });
 
