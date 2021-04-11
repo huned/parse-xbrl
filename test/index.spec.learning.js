@@ -22,7 +22,7 @@ describe('learning-parse-xbrl', function () {
       try {
         const filing = await parse(doc);
         const [, , , , year, company] = doc.split('/');
-        console.log({ year, company });
+        //console.log({ year, company });
         await fs.writeFile(dirname(doc) + sep + company + '_' + year + '.json', JSON.stringify(filing, null, 2));
       } catch (ex) {
         console.error(ex);
@@ -39,26 +39,22 @@ describe('learning-parse-xbrl', function () {
     }
   });
 
-  it('should parse the xbrl for TSLA 10k 2020', function () {
-    const tsla10kOutput = parse('./test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml');
-    tsla10kOutput.then(r => {
-      for (var key in r) {
-        if (tsla10K2020Parsed[key]) {
-          expect(r[key]).to.be.equal(tsla10K2020Parsed[key]);
-        }
+  it('should parse the xbrl for TSLA 10k 2020', async function () {
+    const tsla10kOutput = await parse('./test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml');
+    for (var key in tsla10kOutput) {
+      if (tsla10K2020Parsed[key]) {
+        expect(tsla10kOutput[key]).to.be.equal(tsla10K2020Parsed[key]);
       }
-    });
+    }
   });
 
-  it('should parse new documents', function () {
-    var newmsft = parse('./test/sampleXbrlDocuments/new_documents/xml_0.xml');
+  it('should parse new documents', async function () {
+    const { EntityRegistrantName } = await parse('./test/sampleXbrlDocuments/new_documents/xml_0.xml');
 
-    newmsft.then(resolve => {
-      expect(resolve['EntityRegistrantName']).to.be.equal('MICROSOFT CORPORATION');
-    });
+    expect(EntityRegistrantName).to.be.equal('MICROSOFT CORPORATION');
   });
 
-  it.only('should find the correct property', function () {
+  it('should find the correct property', function () {
     const d = {
       'dei:one': {
         $t: 0,
