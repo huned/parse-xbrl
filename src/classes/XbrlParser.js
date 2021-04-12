@@ -13,6 +13,8 @@ import {
   formatNumber
 } from '../utils/utils.js';
 
+import { Fact } from './Facts.js'
+
 export class XbrlParser {
   constructor(data) {
     this.document = '';
