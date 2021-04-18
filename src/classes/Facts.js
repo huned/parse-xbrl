@@ -36,4 +36,16 @@ export class Facts {
   get facts() {
     return this.#facts;
   }
+
+  reduce(strategy) {
+    if (strategy == 'lastFact') return this.getLastFact();
+    throw new Error();
+  }
+
+  getLastFact() {
+    return this.#facts.reduce(function (previousValue, currentValue, index, array) {
+      if (previousValue.context.getEndDate() <= currentValue.context.getEndDate()) return currentValue;
+      return previousValue;
+    });
+  }
 }

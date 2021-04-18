@@ -11,12 +11,18 @@ describe('fact-parse-xbrl', () => {
     expect(document).to.not.be.null;
   });
 
-  it('should find a more elegant strategy (old)', async () => {
+  it('should fact object has its own context', async () => {
     const apple10kOutput = await XbrlParser.parse('./test/sampleXbrlDocuments/amazon_10k.xml');
     const contextRefs = apple10kOutput.getContexts();
-
     const assetsFacts = apple10kOutput.getFact('us-gaap:Assets');
+    expect(assetsFacts).to.not.be.null;
+  });
 
+  it('should return most recent fact', async () => {
+    const apple10kOutput = await XbrlParser.parse('./test/sampleXbrlDocuments/amazon_10k.xml');
+    const contextRefs = apple10kOutput.getContexts();
+    const assetsFacts = apple10kOutput.getFact('us-gaap:Assets');
+    const lastAsset = assetsFacts.reduce('lastFact');
     expect(assetsFacts).to.not.be.null;
   });
 });
