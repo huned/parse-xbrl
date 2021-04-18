@@ -13,7 +13,7 @@ import {
   formatNumber
 } from '../utils/utils.js';
 
-import { Fact } from './Facts.js'
+import { Facts } from './Facts.js';
 
 export class XbrlParser {
   constructor(data) {
@@ -205,7 +205,7 @@ export class XbrlParser {
   }
 
   getFact(concept) {
-    return new Fact(search(this.document, concept));
+    return new Facts(search(this.document, concept), this.getContexts());
   }
 }
 

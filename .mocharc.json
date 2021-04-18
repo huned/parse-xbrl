@@ -4,6 +4,5 @@
   "package": "./package.json",
   "recursive": true,
   "slow": "1500",
-  "spec": ["test/**/*.spec.js"],
   "watchFiles": ["'src/**/*.js'", "'dist/**/*.js'", "'test/**/*.spec.js'"]
 }

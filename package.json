@@ -9,12 +9,12 @@
     "build_directory": "dist"
   },
   "scripts": {
-    "prepare": "babel src -d $npm_package_config_build_directory && echo '{\"type\":\"commonjs\"}' > $npm_package_config_build_directory/package.json",
-    "build": "rimraf $npm_package_config_build_directory && npm run prepare",
+    "prepare": "babel src -d $npm_package_config_build_directory -s && echo '{\"type\":\"commonjs\"}' > $npm_package_config_build_directory/package.json",
+    "prebuild": "rimraf $npm_package_config_build_directory",
+    "build": "npm run prepare",
     "pretest": "npm run build",
-    "test": "mocha",
+    "test": "mocha --spec 'test/**/*.spec.js' ",
     "test:watch": "npm run test -- --watch",
-    "pretest:learning": "npm run pretest",
     "test:learning": "mocha test/fact.spec.learning.js",
     "pretty": "prettier --write './{src,test}/**/*.js'"
   },
