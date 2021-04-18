@@ -1,7 +1,8 @@
 export class Fact {
   #context;
-  constructor(fact) {
+  constructor(fact, contexts) {
     this.fact = fact;
+    this.#context = contexts[fact.contextRef];
   }
 
   get value() {
@@ -22,23 +23,17 @@ export class Fact {
   get contextRef() {
     return this.fact.contextRef;
   }
-
-  updateContext(contextRef) {
-    this.#context = contextRef[this.contextRef];
-  }
 }
 
 export class Facts {
   #facts;
+  #contexts;
   constructor(facts, contexts) {
-    this.#facts = facts.map(f => new Fact(f));
+    this.#contexts = contexts.reduce((a, b) => ({ ...a, [b.id]: b }), {});
+    this.#facts = facts.map(f => new Fact(f, this.#contexts));
   }
 
   get facts() {
     return this.#facts;
-  }
-
-  updateContexts(contextRef) {
-    this.#facts.map(f => f.updateContext(contextRef));
   }
 }
