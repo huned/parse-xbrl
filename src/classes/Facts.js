@@ -1,12 +1,23 @@
+import { formatNumber } from '../utils/utils.js';
+
 export class Fact {
   #context;
+
   constructor(fact, contexts) {
     this.fact = fact;
     this.#context = contexts[fact.contextRef];
   }
 
   get value() {
-    return this.fact.$t;
+    if (Object.keys(this).some(k => k.includes('nil'))) return 0;
+
+    const scale = parseInt(this.scale) || 0;
+
+    if (typeof this.$t === 'string') {
+      return parseFloat(formatNumber(this.format, this.$t)) * 10 ** scale;
+    }
+
+    return this.$t * 10 ** scale;
   }
 
   get unit() {
@@ -37,14 +48,12 @@ export class Facts {
     return this.#facts;
   }
 
-  reduce(strategy) {
-    if (strategy == 'lastFact') return this.getLastFact();
-    throw new Error();
-  }
+  getMostRecent() {
+    if (this.#facts.length === 0) return null;
 
-  getLastFact() {
     return this.#facts.reduce(function (previousValue, currentValue, index, array) {
-      if (previousValue.context.getEndDate() <= currentValue.context.getEndDate()) return currentValue;
+      if (previousValue.context.endsBefore(currentValue.context.getEndDate())) return currentValue;
+
       return previousValue;
     });
   }

@@ -22,7 +22,7 @@ describe('fact-parse-xbrl', () => {
     const apple10kOutput = await XbrlParser.parse('./test/sampleXbrlDocuments/amazon_10k.xml');
     const contextRefs = apple10kOutput.getContexts();
     const assetsFacts = apple10kOutput.getFact('us-gaap:Assets');
-    const lastAsset = assetsFacts.reduce('lastFact');
+    const lastAsset = assetsFacts.reduce('mostRecent');
     expect(assetsFacts).to.not.be.null;
   });
 });

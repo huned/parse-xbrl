@@ -8,7 +8,9 @@ const {
   transatlanticCapital10kParsed,
   sweetsAndTreats10qParsed,
   rubyTuesday10qParsed,
-  google10kParsed
+  google10kParsed,
+  aapl10Q2020Parsed,
+  tsla10Q2020Parsed
 } = loadData();
 
 describe('parse-xbrl', function () {
@@ -90,11 +92,37 @@ describe('parse-xbrl', function () {
         expect(result[field]).to.deep.equal(google10kParsed[field], `At field ${field}`);
       }
     }
-  });
+  })
+    .timeout(5000)
+    .slow(3125);
+
+  it('should parse the xbrl for Apple 10Q 2020', async () => {
+    const result = await parse('./test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml');
+
+    for (const field in result) {
+      if (aapl10Q2020Parsed[field]) {
+        expect(result[field]).to.deep.equal(aapl10Q2020Parsed[field], `At field ${field}`);
+      }
+    }
+  })
+    .timeout(5000)
+    .slow(3125);
+
+  it('should parse the xbrl for Tesla 10Q 2020', async () => {
+    const result = await parse('./test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml');
+
+    for (const field in result) {
+      if (tsla10Q2020Parsed[field]) {
+        expect(result[field]).to.deep.equal(tsla10Q2020Parsed[field], `At field ${field}`);
+      }
+    }
+  })
+    .timeout(5000)
+    .slow(3125);
 });
 
 function loadData() {
-  const tsla10K2020Parsed = {
+  const tsla10Q2020Parsed = {
     TotalRevenue: 6036000,
     OperatingRevenue: 6036000,
     CostofRevenue: 4769000,
@@ -167,7 +195,7 @@ function loadData() {
     FreeCashFlow: 398000
   };
 
-  const aapl10K2020Parsed = {
+  const aapl10Q2020Parsed = {
     TotalRevenue: 59685000,
     OperatingRevenue: 59685000,
     CostofRevenue: 37005000,
@@ -803,7 +831,7 @@ function loadData() {
     sweetsAndTreats10qParsed,
     rubyTuesday10qParsed,
     google10kParsed,
-    aapl10K2020Parsed,
-    tsla10K2020Parsed
+    aapl10Q2020Parsed,
+    tsla10Q2020Parsed
   };
 }

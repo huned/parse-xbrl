@@ -1,12 +1,12 @@
 export function loadFundamentalAccountingConcepts(xbrl) {
   // Assets
-  xbrl.fields['Assets'] = xbrl.getInstantFactValue('us-gaap:Assets') || 0;
+  xbrl.fields['Assets'] = xbrl.getFact('us-gaap:Assets').getMostRecent()?.value || 0;
 
   // Current Assets
-  xbrl.fields['CurrentAssets'] = xbrl.getInstantFactValue('us-gaap:AssetsCurrent') || 0;
+  xbrl.fields['CurrentAssets'] = xbrl.getFact('us-gaap:AssetsCurrent').getMostRecent()?.value || 0;
 
   // Noncurrent Assets
-  xbrl.fields['NoncurrentAssets'] = xbrl.getInstantFactValue('us-gaap:AssetsNoncurrent');
+  xbrl.fields['NoncurrentAssets'] = xbrl.getFact('us-gaap:AssetsNoncurrent').getMostRecent()?.value;
   if (xbrl.fields['NoncurrentAssets'] === null) {
     if (xbrl.fields['Assets'] && xbrl.fields['CurrentAssets']) {
       xbrl.fields['NoncurrentAssets'] = xbrl.fields['Assets'] - xbrl.fields['CurrentAssets'];
@@ -16,22 +16,22 @@ export function loadFundamentalAccountingConcepts(xbrl) {
   }
 
   // LiabilitiesAndEquity
-  xbrl.fields['LiabilitiesAndEquity'] = xbrl.getInstantFactValue('us-gaap:LiabilitiesAndStockholdersEquity');
+  xbrl.fields['LiabilitiesAndEquity'] = xbrl.getFact('us-gaap:LiabilitiesAndStockholdersEquity').getMostRecent()?.value;
   if (xbrl.fields['LiabilitiesAndEquity'] === null) {
-    xbrl.fields['LiabilitiesAndEquity'] = xbrl.getInstantFactValue('us-gaap:LiabilitiesAndPartnersCapital');
+    xbrl.fields['LiabilitiesAndEquity'] = xbrl.getFact('us-gaap:LiabilitiesAndPartnersCapital').getMostRecent()?.value;
     if (xbrl.fields['LiabilitiesAndEquity']) {
       xbrl.fields['LiabilitiesAndEquity'] = 0;
     }
   }
 
   // Liabilities
-  xbrl.fields['Liabilities'] = xbrl.getInstantFactValue('us-gaap:Liabilities') || 0;
+  xbrl.fields['Liabilities'] = xbrl.getFact('us-gaap:Liabilities').getMostRecent()?.value || 0;
 
   // CurrentLiabilities
-  xbrl.fields['CurrentLiabilities'] = xbrl.getInstantFactValue('us-gaap:LiabilitiesCurrent') || 0;
+  xbrl.fields['CurrentLiabilities'] = xbrl.getFact('us-gaap:LiabilitiesCurrent').getMostRecent()?.value || 0;
 
   // Noncurrent Liabilities
-  xbrl.fields['NoncurrentLiabilities'] = xbrl.getInstantFactValue('us-gaap:LiabilitiesNoncurrent');
+  xbrl.fields['NoncurrentLiabilities'] = xbrl.getFact('us-gaap:LiabilitiesNoncurrent').getMostRecent()?.value;
   if (xbrl.fields['NoncurrentLiabilities'] === null) {
     if (xbrl.fields['Liabilities'] && xbrl.fields['CurrentLiabilities']) {
       xbrl.fields['NoncurrentLiabilities'] = xbrl.fields['Liabilities'] - xbrl.fields['CurrentLiabilities'];
@@ -41,22 +41,23 @@ export function loadFundamentalAccountingConcepts(xbrl) {
   }
 
   // CommitmentsAndContingencies
-  xbrl.fields['CommitmentsAndContingencies'] = xbrl.getInstantFactValue('us-gaap:CommitmentsAndContingencies') || 0;
+  xbrl.fields['CommitmentsAndContingencies'] =
+    xbrl.getFact('us-gaap:CommitmentsAndContingencies').getMostRecent()?.value || 0;
 
   // TemporaryEquity
   xbrl.fields['TemporaryEquity'] =
-    xbrl.getInstantFactValue('us-gaap:TemporaryEquityRedemptionValue') ||
-    xbrl.getInstantFactValue('us-gaap:RedeemablePreferredStockCarryingAmount') ||
-    xbrl.getInstantFactValue('us-gaap:TemporaryEquityCarryingAmount') ||
-    xbrl.getInstantFactValue('us-gaap:TemporaryEquityValueExcludingAdditionalPaidInCapital') ||
-    xbrl.getInstantFactValue('us-gaap:TemporaryEquityCarryingAmountAttributableToParent') ||
-    xbrl.getInstantFactValue('us-gaap:RedeemableNoncontrollingInterestEquityFairValue') ||
+    xbrl.getFact('us-gaap:TemporaryEquityRedemptionValue').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:RedeemablePreferredStockCarryingAmount').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:TemporaryEquityCarryingAmount').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:TemporaryEquityValueExcludingAdditionalPaidInCapital').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:TemporaryEquityCarryingAmountAttributableToParent').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:RedeemableNoncontrollingInterestEquityFairValue').getMostRecent()?.value ||
     0;
 
   // RedeemableNoncontrollingInterest (added to temporary equity)
   var redeemableNoncontrollingInterest =
-    xbrl.getInstantFactValue('us-gaap:RedeemableNoncontrollingInterestEquityCarryingAmount') ||
-    xbrl.getInstantFactValue('us-gaap:RedeemableNoncontrollingInterestEquityCommonCarryingAmount') ||
+    xbrl.getFact('us-gaap:RedeemableNoncontrollingInterestEquityCarryingAmount').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:RedeemableNoncontrollingInterestEquityCommonCarryingAmount').getMostRecent()?.value ||
     0;
 
   // This adds redeemable noncontrolling interest and temporary equity which are rare, but can be reported separately
@@ -66,25 +67,27 @@ export function loadFundamentalAccountingConcepts(xbrl) {
 
   // Equity
   xbrl.fields['Equity'] =
-    xbrl.getInstantFactValue('us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest') ||
-    xbrl.getInstantFactValue('us-gaap:StockholdersEquity') ||
-    xbrl.getInstantFactValue('us-gaap:PartnersCapitalIncludingPortionAttributableToNoncontrollingInterest') ||
-    xbrl.getInstantFactValue('us-gaap:PartnersCapital') ||
-    xbrl.getInstantFactValue('us-gaap:CommonStockholdersEquity') ||
-    xbrl.getInstantFactValue('us-gaap:MemberEquity') ||
-    xbrl.getInstantFactValue('us-gaap:AssetsNet') ||
+    xbrl.getFact('us-gaap:StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest').getMostRecent()
+      ?.value ||
+    xbrl.getFact('us-gaap:StockholdersEquity').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:PartnersCapitalIncludingPortionAttributableToNoncontrollingInterest').getMostRecent()
+      ?.value ||
+    xbrl.getFact('us-gaap:PartnersCapital').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:CommonStockholdersEquity').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:MemberEquity').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:AssetsNet').getMostRecent()?.value ||
     0;
 
   // EquityAttributableToNoncontrollingInterest
   xbrl.fields['EquityAttributableToNoncontrollingInterest'] =
-    xbrl.getInstantFactValue('us-gaap:MinorityInterest') ||
-    xbrl.getInstantFactValue('us-gaap:PartnersCapitalAttributableToNoncontrollingInterest') ||
+    xbrl.getFact('us-gaap:MinorityInterest').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:PartnersCapitalAttributableToNoncontrollingInterest').getMostRecent()?.value ||
     0;
 
   // EquityAttributableToParent
   xbrl.fields['EquityAttributableToParent'] =
-    xbrl.getInstantFactValue('us-gaap:StockholdersEquity') ||
-    xbrl.getInstantFactValue('us-gaap:LiabilitiesAndPartnersCapital') ||
+    xbrl.getFact('us-gaap:StockholdersEquity').getMostRecent()?.value ||
+    xbrl.getFact('us-gaap:LiabilitiesAndPartnersCapital').getMostRecent()?.value ||
     0;
 
   // BS Adjustments

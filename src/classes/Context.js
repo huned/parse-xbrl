@@ -90,4 +90,8 @@ export class Context {
   startsBefore(date) {
     return new Date(this.getStartDate()) <= new Date(date);
   }
+
+  endsBefore(date) {
+    return new Date(this.getEndDate()) <= new Date(date);
+  }
 }
