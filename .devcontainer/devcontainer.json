@@ -15,7 +15,7 @@
   },
 
   // Add the IDs of extensions you want installed when the container is created.
-  "extensions": []
+  "extensions": ["esbenp.prettier-vscode", "streetsidesoftware.code-spell-checker","hbenl.vscode-mocha-test-adapter"]
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
