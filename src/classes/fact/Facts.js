@@ -13,11 +13,6 @@ export class Facts {
 
   getMostRecent() {
     if (this.#facts.length === 0) return null;
-
-    return this.#facts.reduce(function (previousValue, currentValue, index, array) {
-      if (previousValue.context.endsBefore(currentValue.context.getEndDate())) return currentValue;
-
-      return previousValue;
-    });
+    return this.#facts.reduce(Fact.latest);
   }
 }

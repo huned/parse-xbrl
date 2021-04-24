@@ -28,4 +28,13 @@ export class Fact {
   get contextRef() {
     return this.#fact.contextRef;
   }
+
+  static latest(a, b) {
+    if (!(a instanceof Fact) || !(b instanceof Fact)) {
+      throw new TypeError('Arguments are not instances of the Fact class!');
+    }
+
+    if (a.context.endsBefore(b.context.getEndDate())) return b;
+    return a;
+  }
 }
