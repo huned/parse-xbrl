@@ -26,7 +26,8 @@
     "node": ">=10"
   },
   "publishConfig": {
-    "registry": "http://registry.npmjs.org"
+    "registry": "http://registry.npmjs.org",
+    "access": "public"
   },
   "author": "Emily Coco <emilymcoco@gmail.com>",
   "contributors": [
