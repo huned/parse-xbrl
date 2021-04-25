@@ -36,7 +36,6 @@
     },
     {
       "name": "Ricard Mallafre",
-      "email": "r.mallafre.lopez@gmail.com",
       "url": "https://github.com/nikensss"
     }
   ],
@@ -79,6 +78,6 @@
     "sec"
   ],
   "bugs": {
-    "url": "git@github.com:emilycoco/parse-xbrl.git/issues"
+    "url": "git@github.com:weirwoodai/parse-xbrl.git/issues"
   }
 }
