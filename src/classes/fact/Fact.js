@@ -12,13 +12,13 @@ export class Fact {
   get value() {
     if (Object.keys(this).some(k => k.includes('nil'))) return 0;
 
-    const scale = parseInt(this.scale) || 0;
+    const scale = parseInt(this.#fact['scale']) || 0;
 
-    if (typeof this.$t === 'string') {
-      return parseFloat(formatNumber(this.format, this.$t)) * 10 ** scale;
+    if (typeof this.#fact['$t'] === 'string') {
+      return parseFloat(formatNumber(this.#fact['format'], this.#fact['$t'])) * 10 ** scale;
     }
 
-    return this.$t * 10 ** scale;
+    return this.#fact['$t'] * 10 ** scale;
   }
 
   get context() {
