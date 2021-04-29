@@ -10,8 +10,8 @@ Dev Dependency: npm install --save-dev parse-xbrl
 ```
 
 ## Usage
-Xbrl is a standardized language based on xml used to codify financial reporting. This module provides two tasks, parse and parseStr. parse takes one parameter, a file path to an xbrl document, and returns a promise that resolves with a json document of key financial data from the file. ParseStr takes a string of XML and returns the same promise. Xbrl documents can be malformed and inaccurate, so results aren't guaranteed. This module is based on the [python xbrl parser](https://github.com/lukerosiak/pysec) written by Luke Rosiak. Check out the web client for this package [here](http://www.xbrltojson.com/).
 
+Xbrl is a standardized language based on xml used to codify financial reporting. This module provides two tasks, parse and parseStr. parse takes one parameter, a file path to an xbrl document, and returns a promise that resolves with a json document of key financial data from the file. ParseStr takes a string of XML and returns the same promise. Xbrl documents can be malformed and inaccurate, so results aren't guaranteed. This module is based on the [python xbrl parser](https://github.com/lukerosiak/pysec) written by Luke Rosiak. Check out the web client for this package [here](http://www.xbrltojson.com/).
 
 ###### Example usage:
 
@@ -29,7 +29,6 @@ ParseXbrl.parseStr('<?xml version="1.0" encoding="US-ASCII"?>
   // Use results...
 });
 ```
-
 
 ###### Example output for Amazon's 10k (annual) statement:
 
@@ -77,7 +76,7 @@ ParseXbrl.parseStr('<?xml version="1.0" encoding="US-ASCII"?>
   IncomeTaxExpenseBenefit: 950000000,
   IncomeFromContinuingOperationsAfterTax: 596000000,
   IncomeFromDiscontinuedOperations: 0,
-  ExtraordaryItemsGainLoss: 0,
+  ExtraordinaryItemsGainLoss: 0,
   NetIncomeLoss: 596000000,
   NetIncomeAvailableToCommonStockholdersBasic: 596000000,
   PreferredStockDividendsAndOtherAdjustments: 0,
@@ -110,6 +109,7 @@ ParseXbrl.parseStr('<?xml version="1.0" encoding="US-ASCII"?>
 ```
 
 ## Credits
+
 [Emily Coco](https://github.com/emilycoco/)
 
 ## License

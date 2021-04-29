@@ -14,50 +14,43 @@ const {
 } = loadData();
 
 describe('parse-xbrl', function () {
-  it.only('should parse the xbrl for Amazon 10k', async () => {
+  it('should parse the xbrl for Amazon 10k', async () => {
     const result = await parse('./test/sampleXbrlDocuments/amazon_10k.xml');
-
     expect(result).to.deep.equal(amazon10kParsed);
   });
 
   it('should parse the xbrl for Cannabics Pharmaceuticals Inc. 10k', async () => {
     const result = await parse('./test/sampleXbrlDocuments/cannabics_pharmaceuticals_inc_10k.xml');
-
     expect(result).to.deep.equal(cannabicsPharma10kParsed);
   });
 
   it('should parse the xbrl for Costco Inc. 10k', async () => {
     const result = await parse('./test/sampleXbrlDocuments/costco_inc_10k.xml');
-
     expect(result).to.deep.equal(costco10kParsed);
   });
 
   it('should parse the xbrl for Transatlantic Capital Inc. 10k', async () => {
     const result = await parse('./test/sampleXbrlDocuments/transatlantic_capital_inc_10k.xml');
-
     expect(result).to.deep.equal(transatlanticCapital10kParsed);
   });
 
   it('should parse the xbrl for WL Ross Holding Corp 10k', async () => {
     const result = await parse('./test/sampleXbrlDocuments/wl_ross_holding_corp_10k.xml');
-    expect(result[field]).to.deep.equal(wlRossHolingCorp10kParsed[field]);
+    expect(result).to.deep.equal(wlRossHolingCorp10kParsed);
   });
 
   it('should parse the xbrl for Sweets and Treats 10q', async () => {
     const result = await parse('./test/sampleXbrlDocuments/sweets_and_treats_10q.xml');
-
     expect(result).to.deep.equal(sweetsAndTreats10qParsed);
   });
 
   it('should parse the xbrl for Ruby Tuesday 10q', async () => {
     const result = await parse('./test/sampleXbrlDocuments/ruby_tuesday_10q.xml');
-    expect(result[field]).to.deep.equal(rubyTuesday10qParsed[field]);
-    expect(result[field]).to.deep.equal(rubyTuesday10qParsed[field]);
+    expect(result).to.deep.equal(rubyTuesday10qParsed);
   });
 
   it('should parse the xbrl for Google/Alphabet 10k', async () => {
     const result = await parse('./test/sampleXbrlDocuments/google_10k.xml');
-
     expect(result).to.deep.equal(google10kParsed);
   })
     .timeout(5000)
@@ -222,6 +215,9 @@ function loadData() {
   };
 
   const wlRossHolingCorp10kParsed = {
+    DocumentFiscalPeriodFocusContext: 'P01_01_2015To12_31_2015',
+    DocumentFiscalYearFocusContext: 'P01_01_2015To12_31_2015',
+    DocumentPeriodEndDate: '2015-12-31',
     NetCashFlowsContinuing: -791415,
     NetCashFlowsFinancingDiscontinued: 0,
     NetIncomeAvailableToCommonStockholdersBasic: -332612,
@@ -283,11 +279,13 @@ function loadData() {
     BalanceSheetDate: '2015-12-31',
     NetCashFlowsFinancing: 300000,
     ROA: 0.0006642854297876821,
-    ExtraordaryItemsGainLoss: 0,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: 332612,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    CurrentFiscalYearEndDate: '--12-31'
+    CurrentFiscalYearEndDate: '--12-31',
+    ROS: Number.POSITIVE_INFINITY,
+    SGR: null
   };
 
   const amazon10kParsed = {
@@ -354,7 +352,7 @@ function loadData() {
     BalanceSheetDate: '2015-12-31',
     NetCashFlowsFinancing: -3763000000,
     ROA: 0.009107022798117474,
-    ExtraordaryItemsGainLoss: 0,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: 596000000,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
@@ -376,6 +374,9 @@ function loadData() {
     EntityFilerCategory: 'Smaller Reporting Company',
     DocumentType: '10-K',
     ContextForDurations: 'From2004-09-15to2015-08-31',
+    DocumentFiscalPeriodFocusContext: 'From2014-09-01to2015-08-31',
+    DocumentFiscalYearFocusContext: 'From2014-09-01to2015-08-31',
+    DocumentPeriodEndDate: '2015-08-31',
     NetCashFlowsOperatingContinuing: 0,
     OtherComprehensiveIncome: 0,
     ComprehensiveIncomeAttributableToNoncontrollingInterest: 0,
@@ -426,7 +427,9 @@ function loadData() {
     BalanceSheetDate: '2015-08-31',
     NetCashFlowsFinancing: 0,
     ROA: -44.563057413600895,
-    ExtraordaryItemsGainLoss: 0,
+    ROS: Number.NEGATIVE_INFINITY,
+    SGR: null,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: -1279138,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
@@ -434,6 +437,9 @@ function loadData() {
   };
 
   const costco10kParsed = {
+    DocumentFiscalPeriodFocusContext: 'D141201_151130',
+    DocumentFiscalYearFocusContext: 'D141201_151130',
+    DocumentPeriodEndDate: '2015-11-30',
     NetCashFlowsContinuing: 7001,
     NetCashFlowsFinancingDiscontinued: 0,
     NetIncomeAvailableToCommonStockholdersBasic: -23719,
@@ -495,14 +501,19 @@ function loadData() {
     BalanceSheetDate: '2015-11-30',
     NetCashFlowsFinancing: 30000,
     ROA: -1.7388021406055274,
-    ExtraordaryItemsGainLoss: 0,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: -23719,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    CurrentFiscalYearEndDate: '--11-30'
+    CurrentFiscalYearEndDate: '--11-30',
+    ROS: Number.NEGATIVE_INFINITY,
+    SGR: null
   };
 
   const transatlanticCapital10kParsed = {
+    DocumentFiscalPeriodFocusContext: 'From2014-01-01to2014-12-31',
+    DocumentFiscalYearFocusContext: 'From2014-01-01to2014-12-31',
+    DocumentPeriodEndDate: '2014-12-31',
     NetCashFlowsContinuing: 0,
     NetCashFlowsFinancingDiscontinued: 0,
     NetIncomeAvailableToCommonStockholdersBasic: -312535,
@@ -563,14 +574,20 @@ function loadData() {
     NetCashFlowsOperatingDiscontinued: 0,
     BalanceSheetDate: '2014-12-31',
     NetCashFlowsFinancing: 69155,
-    ExtraordaryItemsGainLoss: 0,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: -312535,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    CurrentFiscalYearEndDate: '--12-31'
+    CurrentFiscalYearEndDate: '--12-31',
+    ROA: Number.NEGATIVE_INFINITY,
+    ROS: Number.NEGATIVE_INFINITY,
+    SGR: null
   };
 
   const sweetsAndTreats10qParsed = {
+    DocumentFiscalPeriodFocusContext: 'From2015-08-01to2015-10-31',
+    DocumentFiscalYearFocusContext: 'From2015-08-01to2015-10-31',
+    DocumentPeriodEndDate: '2015-10-31',
     NetCashFlowsContinuing: -47,
     NetCashFlowsFinancingDiscontinued: 0,
     NetIncomeAvailableToCommonStockholdersBasic: -2065,
@@ -634,7 +651,7 @@ function loadData() {
     BalanceSheetDate: '2015-10-31',
     NetCashFlowsFinancing: 18659,
     ROA: -0.3556665518429211,
-    ExtraordaryItemsGainLoss: 0,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: -2065,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
@@ -642,6 +659,9 @@ function loadData() {
   };
 
   const rubyTuesday10qParsed = {
+    DocumentPeriodEndDate: '2015-12-01',
+    DocumentFiscalYearFocusContext: 'd_2015-06-03_2015-12-01',
+    DocumentFiscalPeriodFocusContext: 'd_2015-06-03_2015-12-01',
     NetCashFlowsContinuing: -30080000,
     NetCashFlowsFinancingDiscontinued: 0,
     NetIncomeAvailableToCommonStockholdersBasic: -19993000,
@@ -705,7 +725,7 @@ function loadData() {
     BalanceSheetDate: '2015-12-01',
     NetCashFlowsFinancing: -9639000,
     ROA: -0.02261349729334772,
-    ExtraordaryItemsGainLoss: 0,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: -19993000,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
@@ -713,6 +733,10 @@ function loadData() {
   };
 
   const google10kParsed = {
+    CurrentFiscalYearEndDate: '--12-31',
+    DocumentFiscalPeriodFocusContext: 'FD2015Q4YTD',
+    DocumentFiscalYearFocusContext: 'FD2015Q4YTD',
+    DocumentPeriodEndDate: '2015-12-31',
     NetCashFlowsContinuing: -1364000000,
     NetCashFlowsFinancingDiscontinued: 0,
     NetIncomeAvailableToCommonStockholdersBasic: 15826000000,
@@ -733,27 +757,27 @@ function loadData() {
     SGR: 0.15721800678957132,
     NetCashFlowsInvestingDiscontinued: 0,
     ROE: 0.13585859005576287,
-    PreferredStockDividendsAndOtherAdjustments: 0,
+    PreferredStockDividendsAndOtherAdjustments: 522000000,
     NonoperatingIncomePlusInterestAndDebtExpensePlusIncomeFromEquityMethodInvestments: 291000000,
     NetCashFlowsOperating: 26024000000,
     CostsAndExpenses: 55629000000,
     CurrentAssets: 90114000000,
-    IncomeFromEquityMethodInvestments: 0,
+    IncomeFromEquityMethodInvestments: -227000000,
     NoncurrentAssets: 57347000000,
     EntityRegistrantName: 'Alphabet Inc.',
     IncomeTaxExpenseBenefit: 3303000000,
-    CostOfRevenue: 0,
-    ExchangeGainsLosses: 0,
+    CostOfRevenue: 28164000000,
+    ExchangeGainsLosses: -434000000,
     CurrentLiabilities: 19310000000,
     Assets: 147461000000,
     NetCashFlowsDiscontinued: 0,
     LiabilitiesAndEquity: 147461000000,
     OperatingIncomeLoss: 19360000000,
     TemporaryEquity: 0,
-    NonoperatingIncomeLoss: 0,
+    NonoperatingIncomeLoss: 291000000,
     OtherOperatingIncome: 0,
     EquityAttributableToParent: 120331000000,
-    GrossProfit: 0,
+    GrossProfit: 46825000000,
     TradingSymbol: 'GOOG, GOOGL',
     NetCashFlow: -1798000000,
     DocumentFiscalYearFocus: '2015',
@@ -762,7 +786,7 @@ function loadData() {
     ComprehensiveIncome: 14447000000,
     Revenues: 74989000000,
     CommitmentsAndContingencies: 0,
-    OperatingExpenses: 0,
+    OperatingExpenses: 27465000000,
     IncomeStatementPeriodYTD: '2015-01-01',
     Liabilities: 27130000000,
     NetCashFlowsFinancingContinuing: -3677000000,
@@ -776,7 +800,7 @@ function loadData() {
     BalanceSheetDate: '2015-12-31',
     NetCashFlowsFinancing: -3677000000,
     ROA: 0.11086321128976476,
-    ExtraordaryItemsGainLoss: 0,
+    ExtraordinaryItemsGainLoss: 0,
     IncomeFromContinuingOperationsAfterTax: 16348000000,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0

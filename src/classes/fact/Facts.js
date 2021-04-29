@@ -5,7 +5,9 @@ export class Facts {
   constructor(facts, contexts) {
     const toHashMap = (hashMap, b) => ({ ...hashMap, [b.id]: b });
     this.#contexts = contexts.filter(c => !c.hasExplicitMember()).reduce(toHashMap, {});
-    this.#facts = facts.map(f => new Fact(f, this.#contexts));
+    this.#facts = facts
+      .filter(f => this.#contexts[f.contextRef])
+      .map(f => new Fact(f, this.#contexts[f.contextRef]));
   }
 
   get facts() {

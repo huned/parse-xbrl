@@ -4,9 +4,9 @@ export class Fact {
   #context;
   #fact;
 
-  constructor(fact, contexts) {
+  constructor(fact, context) {
     this.#fact = fact;
-    this.#context = contexts[fact.contextRef];
+    this.#context = context;
   }
 
   get value() {
