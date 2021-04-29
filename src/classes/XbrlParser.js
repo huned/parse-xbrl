@@ -28,7 +28,7 @@ export class XbrlParser {
 
   static async parseStr(str) {
     const data = JSON.parse(toJson(str));
-    return Promise.resolve(new XbrlParser(data));
+    return Promise.resolve(new XbrlParser(data).fields);
   }
 
   init(data) {

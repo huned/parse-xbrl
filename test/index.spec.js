@@ -14,108 +14,65 @@ const {
 } = loadData();
 
 describe('parse-xbrl', function () {
-  it('should parse the xbrl for Amazon 10k', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/amazon_10k.xml');
+  it.only('should parse the xbrl for Amazon 10k', async () => {
+    const result = await parse('./test/sampleXbrlDocuments/amazon_10k.xml');
 
-    for (const field in result) {
-      if (amazon10kParsed[field]) {
-        expect(result[field]).to.deep.equal(amazon10kParsed[field], `At field ${field}`);
-      }
-    }
+    expect(result).to.deep.equal(amazon10kParsed);
   });
 
   it('should parse the xbrl for Cannabics Pharmaceuticals Inc. 10k', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/cannabics_pharmaceuticals_inc_10k.xml');
+    const result = await parse('./test/sampleXbrlDocuments/cannabics_pharmaceuticals_inc_10k.xml');
 
-    for (const field in result) {
-      if (cannabicsPharma10kParsed[field]) {
-        expect(result[field]).to.deep.equal(cannabicsPharma10kParsed[field], `At field ${field}`);
-      }
-    }
+    expect(result).to.deep.equal(cannabicsPharma10kParsed);
   });
 
   it('should parse the xbrl for Costco Inc. 10k', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/costco_inc_10k.xml');
+    const result = await parse('./test/sampleXbrlDocuments/costco_inc_10k.xml');
 
-    for (const field in result) {
-      if (costco10kParsed[field]) {
-        expect(result[field]).to.deep.equal(costco10kParsed[field], `At field ${field}`);
-      }
-    }
+    expect(result).to.deep.equal(costco10kParsed);
   });
 
   it('should parse the xbrl for Transatlantic Capital Inc. 10k', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/transatlantic_capital_inc_10k.xml');
+    const result = await parse('./test/sampleXbrlDocuments/transatlantic_capital_inc_10k.xml');
 
-    for (const field in result) {
-      if (transatlanticCapital10kParsed[field]) {
-        expect(result[field]).to.deep.equal(transatlanticCapital10kParsed[field], `At field ${field}`);
-      }
-    }
+    expect(result).to.deep.equal(transatlanticCapital10kParsed);
   });
 
   it('should parse the xbrl for WL Ross Holding Corp 10k', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/wl_ross_holding_corp_10k.xml');
-
-    for (const field in result) {
-      if (wlRossHolingCorp10kParsed[field]) {
-        expect(result[field]).to.deep.equal(wlRossHolingCorp10kParsed[field], `At field ${field}`);
-      }
-    }
+    const result = await parse('./test/sampleXbrlDocuments/wl_ross_holding_corp_10k.xml');
+    expect(result[field]).to.deep.equal(wlRossHolingCorp10kParsed[field]);
   });
 
   it('should parse the xbrl for Sweets and Treats 10q', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/sweets_and_treats_10q.xml');
+    const result = await parse('./test/sampleXbrlDocuments/sweets_and_treats_10q.xml');
 
-    for (const field in result) {
-      if (sweetsAndTreats10qParsed[field]) {
-        expect(result[field]).to.deep.equal(sweetsAndTreats10qParsed[field], `At field ${field}`);
-      }
-    }
+    expect(result).to.deep.equal(sweetsAndTreats10qParsed);
   });
 
   it('should parse the xbrl for Ruby Tuesday 10q', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/ruby_tuesday_10q.xml');
-
-    for (const field in result) {
-      if (rubyTuesday10qParsed[field]) {
-        expect(result[field]).to.deep.equal(rubyTuesday10qParsed[field], `At field ${field}`);
-      }
-    }
+    const result = await parse('./test/sampleXbrlDocuments/ruby_tuesday_10q.xml');
+    expect(result[field]).to.deep.equal(rubyTuesday10qParsed[field]);
+    expect(result[field]).to.deep.equal(rubyTuesday10qParsed[field]);
   });
 
   it('should parse the xbrl for Google/Alphabet 10k', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/google_10k.xml');
+    const result = await parse('./test/sampleXbrlDocuments/google_10k.xml');
 
-    for (const field in result) {
-      if (google10kParsed[field]) {
-        expect(result[field]).to.deep.equal(google10kParsed[field], `At field ${field}`);
-      }
-    }
+    expect(result).to.deep.equal(google10kParsed);
   })
     .timeout(5000)
     .slow(3125);
 
   it('should parse the xbrl for Apple 10Q 2020', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml');
+    const result = await parse('./test/sampleXbrlDocuments/xbrls/2020/aapl/xml_0.xml');
 
-    for (const field in result) {
-      if (aapl10Q2020Parsed[field]) {
-        expect(result[field]).to.deep.equal(aapl10Q2020Parsed[field], `At field ${field}`);
-      }
-    }
-  })
-    .timeout(5000)
-    .slow(3125);
+    expect(result).to.deep.equal(aapl10Q2020Parsed);
+  });
 
   it('should parse the xbrl for Tesla 10Q 2020', async () => {
-    const { document, result } = await parse('./test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml');
+    const result = await parse('./test/sampleXbrlDocuments/xbrls/2020/tsla/xml_0.xml');
 
-    for (const field in result) {
-      if (tsla10Q2020Parsed[field]) {
-        expect(result[field]).to.deep.equal(tsla10Q2020Parsed[field], `At field ${field}`);
-      }
-    }
+    expect(result).to.deep.equal(tsla10Q2020Parsed);
   })
     .timeout(5000)
     .slow(3125);
@@ -330,7 +287,7 @@ function loadData() {
     IncomeFromContinuingOperationsAfterTax: 332612,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    FiscalYear: '--12-31'
+    CurrentFiscalYearEndDate: '--12-31'
   };
 
   const amazon10kParsed = {
@@ -401,7 +358,10 @@ function loadData() {
     IncomeFromContinuingOperationsAfterTax: 596000000,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    FiscalYear: '--12-31'
+    CurrentFiscalYearEndDate: '--12-31',
+    DocumentFiscalPeriodFocusContext: 'FD2015Q4YTD',
+    DocumentFiscalYearFocusContext: 'FD2015Q4YTD',
+    DocumentPeriodEndDate: '2015-12-31'
   };
 
   const cannabicsPharmaceuticals10kParsed = {
@@ -470,7 +430,7 @@ function loadData() {
     IncomeFromContinuingOperationsAfterTax: -1279138,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    FiscalYear: '--08-31'
+    CurrentFiscalYearEndDate: '--08-31'
   };
 
   const costco10kParsed = {
@@ -539,7 +499,7 @@ function loadData() {
     IncomeFromContinuingOperationsAfterTax: -23719,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    FiscalYear: '--11-30'
+    CurrentFiscalYearEndDate: '--11-30'
   };
 
   const transatlanticCapital10kParsed = {
@@ -607,7 +567,7 @@ function loadData() {
     IncomeFromContinuingOperationsAfterTax: -312535,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    FiscalYear: '--12-31'
+    CurrentFiscalYearEndDate: '--12-31'
   };
 
   const sweetsAndTreats10qParsed = {
@@ -678,7 +638,7 @@ function loadData() {
     IncomeFromContinuingOperationsAfterTax: -2065,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    FiscalYear: '--07-31'
+    CurrentFiscalYearEndDate: '--07-31'
   };
 
   const rubyTuesday10qParsed = {
@@ -749,7 +709,7 @@ function loadData() {
     IncomeFromContinuingOperationsAfterTax: -19993000,
     NetIncomeAttributableToNoncontrollingInterest: 0,
     InterestAndDebtExpense: 0,
-    FiscalYear: '--05-31'
+    CurrentFiscalYearEndDate: '--05-31'
   };
 
   const google10kParsed = {
